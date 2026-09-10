@@ -1,0 +1,34 @@
+{
+  "lr": {
+    "roc_auc": 0.9041429350791053,
+    "pr_auc": 0.8613603717724164
+  },
+  "rf": {
+    "roc_auc": 0.9724440807419531,
+    "pr_auc": 0.9555992799382265
+  },
+  "feature_names": [
+    "f01_override_keyword_count",
+    "f02_role_swap_keyword_count",
+    "f03_data_exfil_keyword_count",
+    "f04_filter_bypass_count",
+    "f05_has_base64_blob",
+    "f06_unicode_lookalike_count",
+    "f07_zero_width_count",
+    "f08_leetspeak_density",
+    "f09_non_ascii_ratio",
+    "f10_encoding_anomaly_score",
+    "f11_char_entropy",
+    "f12_uppercase_ratio",
+    "f13_avg_word_length",
+    "f14_sentence_count",
+    "f15_avg_sentence_length",
+    "f16_special_char_ratio",
+    "f17_exclamation_count",
+    "f18_imperative_opener",
+    "f19_text_length",
+    "f20_word_count"
+  ],
+  "train_size": 8778,
+  "test_size": 2060
+}

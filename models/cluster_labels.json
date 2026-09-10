@@ -1,0 +1,106 @@
+{
+  "0": {
+    "label": "instruction_override",
+    "count": 397,
+    "top_features": [
+      [
+        "f01_override_keyword_count",
+        2.0644
+      ],
+      [
+        "f18_imperative_opener",
+        1.6523
+      ],
+      [
+        "f13_avg_word_length",
+        1.2321
+      ],
+      [
+        "f15_avg_sentence_length",
+        -0.5386
+      ],
+      [
+        "f20_word_count",
+        -0.3209
+      ]
+    ]
+  },
+  "1": {
+    "label": "social_engineering",
+    "count": 2054,
+    "top_features": [
+      [
+        "f01_override_keyword_count",
+        -0.3805
+      ],
+      [
+        "f18_imperative_opener",
+        -0.3093
+      ],
+      [
+        "f19_text_length",
+        -0.2324
+      ],
+      [
+        "f20_word_count",
+        -0.23
+      ],
+      [
+        "f11_char_entropy",
+        -0.1768
+      ]
+    ]
+  },
+  "2": {
+    "label": "encoding_evasion",
+    "count": 244,
+    "top_features": [
+      [
+        "f19_text_length",
+        2.4641
+      ],
+      [
+        "f20_word_count",
+        2.457
+      ],
+      [
+        "f11_char_entropy",
+        1.7145
+      ],
+      [
+        "f17_exclamation_count",
+        1.648
+      ],
+      [
+        "f10_encoding_anomaly_score",
+        1.6334
+      ]
+    ]
+  },
+  "3": {
+    "label": "encoding_evasion_3",
+    "count": 1,
+    "top_features": [
+      [
+        "f07_zero_width_count",
+        51.9134
+      ],
+      [
+        "f09_non_ascii_ratio",
+        41.188
+      ],
+      [
+        "f16_special_char_ratio",
+        18.8881
+      ],
+      [
+        "f15_avg_sentence_length",
+        9.7217
+      ],
+      [
+        "f10_encoding_anomaly_score",
+        5.932
+      ]
+    ]
+  }
+}
