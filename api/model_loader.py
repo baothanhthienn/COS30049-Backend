@@ -1,6 +1,6 @@
 """
 Singleton model loader — loads RF, LR, KMeans, and scaler once on startup.
-All prediction functions live here; main.py just calls them.
+All prediction functions
 """
 
 import json
@@ -10,7 +10,6 @@ import sys
 
 import numpy as np
 
-# Allow importing from src/
 _SRC = os.path.join(os.path.dirname(__file__), '..', 'src')
 sys.path.insert(0, _SRC)
 

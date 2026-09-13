@@ -14,8 +14,7 @@ from api.main import app
 client = TestClient(app)
 
 
-# /health 
-
+# /health checks 
 def test_health_ok():
     r = client.get("/health")
     assert r.status_code == 200
@@ -27,7 +26,6 @@ def test_health_has_model_field():
 
 
 # /predict
-
 def test_predict_returns_200():
     r = client.post("/predict", json={"text": "hello world"})
     assert r.status_code == 200
@@ -98,7 +96,6 @@ def test_predict_missing_text_rejected():
 
 
 # /stats 
-
 def test_stats_returns_200():
     r = client.get("/stats")
     assert r.status_code == 200

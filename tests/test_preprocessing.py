@@ -130,7 +130,6 @@ def test_batch_originals_unchanged():
     originals, _ = preprocess_series(texts)
     assert originals == texts
 
-
 if __name__ == "__main__":
     import pytest
     pytest.main([__file__, "-v"])

@@ -92,7 +92,9 @@ _IMPERATIVE_VERBS = {
     "print", "access", "expose", "leak", "dump", "disable", "remove",
 }
 
-# Pre-compile all regex patterns
+# Pre-compile all regex patterns at import time so the cost is paid once, not
+# on every request. Each phrase is wrapped in a non-capturing group so the
+# alternation '|' doesn't interfere with inner groups inside individual patterns.
 def _compile(phrases: list[str]) -> re.Pattern:
     combined = "|".join(f"(?:{p})" for p in phrases)
     return re.compile(combined, re.IGNORECASE)
@@ -230,7 +232,6 @@ def _special_char_ratio(text: str) -> float:
 
 
 def _leetspeak_density(original: str, decoded: str) -> float:
-    """Fraction of chars in original that were leet-substituted."""
     if not original:
         return 0.0
     leet_count = sum(1 for c in original if c in _LEET_CHARS)
@@ -244,10 +245,6 @@ def _encoding_anomaly_score(
     leet_density: float,
     non_ascii_ratio: float,
 ) -> float:
-    """
-    Composite score normalised to [0, 1].
-    Weights chosen so a heavily-encoded payload scores close to 1.0.
-    """
     score = (
         has_b64 * 0.30
         + min(lookalike_count / 10.0, 1.0) * 0.25
@@ -259,7 +256,6 @@ def _encoding_anomaly_score(
 
 
 # Main extraction function
-
 def extract_features(processed: ProcessedText) -> FeatureVector:
     """
     Extract all 20 features from a ProcessedText named tuple.
@@ -305,11 +301,6 @@ def extract_features(processed: ProcessedText) -> FeatureVector:
 
 
 def extract_features_from_text(text: str) -> tuple[FeatureVector, list[Span]]:
-    """
-    Convenience function: preprocess + extract + find spans in one call.
-    Returns (FeatureVector, spans).
-    Used by FastAPI /predict endpoint.
-    """
     processed = preprocess(text)
     features  = extract_features(processed)
     spans     = find_spans(processed.original_text, processed.decoded_text)
@@ -317,8 +308,4 @@ def extract_features_from_text(text: str) -> tuple[FeatureVector, list[Span]]:
 
 
 def extract_features_batch(texts) -> list[FeatureVector]:
-    """
-    Batch extraction for training. Returns a list of FeatureVectors.
-    Usage: rows = extract_features_batch(df['text']); X = [r.to_list() for r in rows]
-    """
     return [extract_features(preprocess(t)) for t in texts]

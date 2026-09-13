@@ -1,6 +1,4 @@
 """
-Text preprocessing pipeline for prompt injection detection.
-
 Pipeline order (must not change — each step feeds the next):
   1. Base64 decode     — reveals hidden payloads in encoded blobs
   2. Unicode NFKC      — collapses compatibility characters (ﬁ→fi, ² →2)
@@ -11,7 +9,6 @@ Pipeline order (must not change — each step feeds the next):
 Returns both original_text (for span highlighting in /predict) and
 decoded_text (for feature extraction) as a named tuple.
 """
-
 import base64
 import re
 import unicodedata
@@ -77,20 +74,24 @@ _LEET_RE = re.compile(r'[4@31057$!+|]')
 
 def _try_base64_decode(text: str) -> str:
     """
-    Scan for Base64-looking substrings and replace with decoded UTF-8.
-    Conservative: only decodes blobs of 16+ chars that decode cleanly to
-    printable ASCII/UTF-8. Leaves the rest of the text intact.
+    Scan for Base64-looking substrings and replace each with its decoded UTF-8.
+
+    The 16-char minimum guards against false positives: short sequences like
+    'aGk=' appear in normal English coincidentally. The 90% printability gate
+    rejects binary payloads (e.g. image data) that would corrupt downstream
+    text features if decoded. Undecodable blobs are left intact so the
+    encoding-anomaly features (f05, f09) can still detect them.
     """
     # Match padded or unpadded base64 blobs (min 16 chars to avoid false positives)
     b64_pattern = re.compile(r'[A-Za-z0-9+/]{16,}={0,2}')
 
     def try_replace(m: re.Match) -> str:
         blob = m.group(0)
-        # Pad to multiple of 4
+        # base64 requires length to be a multiple of 4; pad if encoder omitted it
         pad = (4 - len(blob) % 4) % 4
         try:
             decoded = base64.b64decode(blob + '=' * pad).decode('utf-8', errors='strict')
-            # Only accept if result is mostly printable (avoids binary garbage)
+            # Reject binary garbage — a real injection payload is human-readable text
             printable = sum(c.isprintable() or c in '\n\t\r' for c in decoded)
             if printable / max(len(decoded), 1) >= 0.90:
                 return decoded
@@ -102,10 +103,25 @@ def _try_base64_decode(text: str) -> str:
 
 
 def _apply_lookalike_map(text: str) -> str:
+    """
+    Substitute visually identical Unicode characters with their ASCII equivalents.
+
+    Attackers exploit homoglyphs (e.g. Cyrillic 'а' looks identical to Latin 'a')
+    to slip past keyword detectors that compare byte values. str.translate with a
+    pre-built ord→str map is the fastest Python approach for this — O(n) with a
+    single pass and no regex overhead.
+    """
     return text.translate(_LOOKALIKE_MAP)
 
 
 def _strip_zero_width(text: str) -> str:
+    """
+    Remove invisible Unicode codepoints that can split keywords mid-word.
+
+    'ign​ore' (zero-width space between 'ign' and 'ore') won't match the regex
+    r'ignore', but the human eye sees 'ignore'. Stripping these before feature
+    extraction closes that evasion path.
+    """
     return _ZERO_WIDTH_RE.sub('', text)
 
 
@@ -114,39 +130,27 @@ def _normalise_leet(text: str) -> str:
 
 
 def preprocess(text: str) -> ProcessedText:
-    """
-    Run the full pipeline on a single input string.
-
-    Returns ProcessedText(original_text, decoded_text).
-    - original_text: the raw input, unchanged
-    - decoded_text:  normalised text ready for feature extraction
-    """
     original = text
 
-    # Step 1: Base64 decode
+    # Base64 decode
     step = _try_base64_decode(text)
 
-    # Step 2: Unicode NFKC normalisation
+    # Unicode NFKC normalisation
     step = unicodedata.normalize('NFKC', step)
 
-    # Step 3: Lookalike character substitution
+    # Lookalike character substitution
     step = _apply_lookalike_map(step)
 
-    # Step 4: Strip zero-width / invisible characters
+    # Strip zero-width / invisible characters
     step = _strip_zero_width(step)
 
-    # Step 5: Leetspeak normalisation
+    # Leetspeak normalisation
     step = _normalise_leet(step)
 
     return ProcessedText(original_text=original, decoded_text=step)
 
 
 def preprocess_series(texts) -> tuple[list[str], list[str]]:
-    """
-    Batch-process an iterable of texts.
-    Returns (original_texts, decoded_texts) as parallel lists.
-    Suitable for pandas: originals, decoded = preprocess_series(df['text'])
-    """
     results = [preprocess(t) for t in texts]
     originals = [r.original_text for r in results]
     decoded   = [r.decoded_text  for r in results]

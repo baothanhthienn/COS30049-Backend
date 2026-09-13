@@ -1,12 +1,8 @@
 """
-FastAPI application — Prompt Injection Guardrail API.
-
 Endpoints:
   POST /predict   — classify a single text
   GET  /stats     — running session statistics
   GET  /health    — liveness check
-
-Run: uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 """
 
 import logging
