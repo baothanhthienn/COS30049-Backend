@@ -15,6 +15,7 @@ _SRC = os.path.join(os.path.dirname(__file__), '..', 'src')
 sys.path.insert(0, _SRC)
 
 from feature_extraction import extract_features_from_text  # noqa: E402
+from preprocessing import preprocess  # noqa: E402
 
 _MODELS_DIR = os.path.join(os.path.dirname(__file__), '..', 'models')
 
@@ -76,7 +77,6 @@ def predict(text: str) -> dict:
         cluster_id = int(_kmeans_bundle['kmeans'].predict(X_scaled)[0])
         cluster_label = _cluster_labels.get(str(cluster_id), {}).get('label', 'unknown')
 
-    from preprocessing import preprocess  # lazy — already in sys.path
     decoded = preprocess(text).decoded_text
 
     return {

@@ -9,11 +9,15 @@ Endpoints:
 Run: uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 """
 
+import logging
+import threading
 from collections import defaultdict
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+
+_logger = logging.getLogger(__name__)
 
 from api.schemas import (
     PredictRequest, PredictResponse, StatsResponse,
@@ -22,6 +26,7 @@ from api.schemas import (
 from api import model_loader
 
 # In-memory session stats (resets on server restart)
+_stats_lock = threading.Lock()
 _stats = {
     "total_requests": 0,
     "total_blocked":  0,
@@ -56,15 +61,17 @@ def predict(req: PredictRequest):
     try:
         result = model_loader.predict(req.text)
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        _logger.exception("predict failed")
+        raise HTTPException(status_code=500, detail="Prediction service unavailable.")
 
-    _stats["total_requests"] += 1
-    if result["verdict"] == "BLOCK":
-        _stats["total_blocked"] += 1
-        if result["cluster_label"]:
-            _stats["cluster_counts"][result["cluster_label"]] += 1
-    else:
-        _stats["total_allowed"] += 1
+    with _stats_lock:
+        _stats["total_requests"] += 1
+        if result["verdict"] == "BLOCK":
+            _stats["total_blocked"] += 1
+            if result["cluster_label"]:
+                _stats["cluster_counts"][result["cluster_label"]] += 1
+        else:
+            _stats["total_allowed"] += 1
 
     return PredictResponse(
         verdict=result["verdict"],
@@ -79,14 +86,18 @@ def predict(req: PredictRequest):
 
 @app.get("/stats", response_model=StatsResponse)
 def stats():
-    total = _stats["total_requests"]
-    block_rate = _stats["total_blocked"] / total if total > 0 else 0.0
+    with _stats_lock:
+        total = _stats["total_requests"]
+        blocked = _stats["total_blocked"]
+        allowed = _stats["total_allowed"]
+        clusters = dict(_stats["cluster_counts"])
+    block_rate = blocked / total if total > 0 else 0.0
     return StatsResponse(
         total_requests=total,
-        total_blocked=_stats["total_blocked"],
-        total_allowed=_stats["total_allowed"],
+        total_blocked=blocked,
+        total_allowed=allowed,
         block_rate=round(block_rate, 4),
-        cluster_counts=dict(_stats["cluster_counts"]),
+        cluster_counts=clusters,
     )
 
 
