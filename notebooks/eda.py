@@ -1,7 +1,7 @@
 """
 EDA — Prompt Injection Guardrail
 Covers: label balance, text length, duplicates, class samples, concat strategy.
-Run: python3 notebooks/01_eda.py
+Run: python3 notebooks/eda.py
 """
 import pandas as pd
 import numpy as np
