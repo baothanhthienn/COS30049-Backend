@@ -103,7 +103,7 @@ def train():
 
     results = {}
 
-    # ── Logistic Regression (unit-taught baseline) ──────────────────────────
+    # Logistic Regression (unit-taught baseline) 
     # Baseline for comparison; linear decision boundary; needs scaling
     print("\nTraining Logistic Regression baseline...")
     t0 = time.time()
@@ -126,7 +126,7 @@ def train():
     results['rf'] = evaluate("Random Forest", rf, X_test, y_test)
     results['rf']['train_s'] = round(train_s, 2)
 
-    # ── XGBoost (beyond unit) ────────────────────────────────────────────────
+    # XGBoost (beyond unit)
     # Gradient boosted trees; scale_pos_weight handles imbalance natively;
     # outperforms RF on structured tabular features via additive correction
     print("\nTraining XGBoost...")
