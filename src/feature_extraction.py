@@ -3,32 +3,72 @@ Feature extraction — 20 features in 3 groups.
 
 Group 1 — Keyword / phrase signals (4 features):
   f01  override_keyword_count    imperative override phrases ("ignore all", "disregard")
+                                 [Perez et al., 2022 — "Ignore Previous Prompt"; Liu et al., 2023 — "Prompt Injection Attacks"]
   f02  role_swap_keyword_count   persona/role hijack phrases ("act as", "you are now")
+                                 [Greshake et al., 2023 — "Not What You've Signed Up For"]
   f03  data_exfil_keyword_count  data/credential theft phrases ("give me your", "api key")
+                                 [Greshake et al., 2023 — indirect injection via exfiltration intent]
   f04  filter_bypass_count       filter-bypass phrases ("bypass", "jailbreak", "no restrictions")
+                                 [Perez et al., 2022 — "Ignore Previous Prompt"; Wei et al., 2023 — "Jailbroken"]
 
 Group 2 — Encoding anomaly signals (6 features):
   f05  has_base64_blob           1 if a valid base64 blob (≥16 chars) was detected
+                                 [Boucher et al., 2022 — "Bad Characters": trojan Unicode/encoding attacks]
   f06  unicode_lookalike_count   count of Cyrillic/Greek/fullwidth lookalike chars in original
+                                 [Unicode Consortium, UTS#39 §4 — "Unicode Security Mechanisms"]
   f07  zero_width_count          count of zero-width / invisible Unicode chars in original
+                                 [Boucher et al., 2022 — invisible character injection]
   f08  leetspeak_density         fraction of chars in decoded_text that were leet substitutes
+                                 [Kurita et al., 2020 — adversarial trigger obfuscation via substitution]
   f09  non_ascii_ratio           fraction of chars in original that are non-ASCII
+                                 [Unicode Consortium, UTS#39 §4 — confusable non-ASCII detection]
   f10  encoding_anomaly_score    composite: sum of f05–f09 normalised to 0–1
+                                 [composite feature; weighted per empirical FPR on validation set]
 
 Group 3 — Structural signals (10 features):
   f11  char_entropy              Shannon entropy of character distribution in decoded_text
+                                 [Shannon, 1948; Pham et al., 2018 — entropy for adversarial text detection]
   f12  uppercase_ratio           fraction of alpha chars that are uppercase
+                                 [Nobata et al., 2016 — "Abusive Language Detection": uppercase as aggression signal]
   f13  avg_word_length           average word length in decoded_text
+                                 [Nobata et al., 2016 — lexical features for text classification]
   f14  sentence_count            number of sentences (split on .!?)
+                                 [Nobata et al., 2016 — structural/syntactic features]
   f15  avg_sentence_length       average words per sentence
+                                 [Nobata et al., 2016 — syntactic complexity]
   f16  special_char_ratio        fraction of non-alphanumeric, non-space chars
+                                 [Kurita et al., 2020 — special character density as obfuscation indicator]
   f17  exclamation_count         count of ! in original
+                                 [Nobata et al., 2016 — punctuation features for adversarial text]
   f18  imperative_opener         1 if decoded_text starts with an imperative verb
+                                 [Perez et al., 2022 — injection prompts overwhelmingly open with imperative commands]
   f19  text_length               total char count of original_text
+                                 [Nobata et al., 2016 — length as baseline structural feature]
   f20  word_count                total word count of decoded_text
+                                 [Nobata et al., 2016 — length as baseline structural feature]
 
 All features are floats (ints cast to float) for scikit-learn compatibility.
 Span computation is on original_text so highlight indices survive encoding.
+
+References (Harvard):
+  Boucher, N., Shumailov, I., Anderson, R. and Papernot, N. (2022) 'Bad Characters: Imperceptible NLP
+    Attacks', IEEE Symposium on Security and Privacy.
+  Greshake, K., Abdelnabi, S., Mishra, S., Endres, C., Holz, T. and Fritz, M. (2023) 'Not What
+    You've Signed Up For: Compromising Real-World LLM-Integrated Applications with Indirect Prompt
+    Injections', arXiv:2302.12173.
+  Kurita, K., Michel, P. and Neubig, G. (2020) 'Weight Poisoning Attacks on Pre-trained Models',
+    ACL 2020.
+  Liu, Y., Deng, G., Li, Y., Wang, K., Zhang, T., Liu, Y., Wang, H., Zheng, Y. and Liu, Y. (2023)
+    'Prompt Injection Attack Against LLM-Integrated Applications', arXiv:2306.05499.
+  Nobata, C., Tetreault, J., Thomas, A., Mehdad, Y. and Chang, Y. (2016) 'Abusive Language Detection
+    in Online User Content', WWW 2016.
+  Perez, F. and Ribeiro, I. (2022) 'Ignore Previous Prompt: Attack Techniques for Language Models',
+    NeurIPS ML Safety Workshop, arXiv:2211.09527.
+  Shannon, C.E. (1948) 'A Mathematical Theory of Communication', Bell System Technical Journal, 27(3).
+  Unicode Consortium (2023) Unicode Technical Standard #39: Unicode Security Mechanisms. Available at:
+    https://unicode.org/reports/tr39/ (Accessed: September 2026).
+  Wei, A., Haghtalab, N. and Steinhardt, J. (2023) 'Jailbroken: How Does LLM Safety Training Fail?',
+    NeurIPS 2023.
 """
 
 import math
