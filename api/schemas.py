@@ -5,6 +5,8 @@ from pydantic import BaseModel, Field
 
 
 class PredictRequest(BaseModel):
+    # 10k char cap prevents feature extraction from running on arbitrarily large
+    # payloads; prompt injection attempts are rarely longer than a few paragraphs.
     text: str = Field(..., min_length=1, max_length=10_000)
 
 
@@ -18,8 +20,10 @@ class PredictResponse(BaseModel):
     verdict:        str            # "BLOCK" | "ALLOW"
     label:          int            # 1 = injection, 0 = benign
     confidence:     float          # P(injection) from RF
-    cluster_id:     Optional[int]  # only when verdict == "BLOCK"
-    cluster_label:  Optional[str]  # human-readable attack family
+    # None for benign traffic — K-means fitted on injection samples only, so
+    # clustering a ALLOW verdict would extrapolate outside the model's training domain.
+    cluster_id:     Optional[int]
+    cluster_label:  Optional[str]  # human-readable attack family name
     spans:          list[SpanOut]
     decoded_text:   str            # normalised text used for feature extraction
 

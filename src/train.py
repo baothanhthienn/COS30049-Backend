@@ -113,7 +113,7 @@ def train():
     results['lr'] = evaluate("Logistic Regression (baseline)", lr, X_test, y_test, scaler)
     results['lr']['train_s'] = round(train_s, 2)
 
-    # ── Random Forest (unit-taught primary) ─────────────────────────────────
+    # Random Forest (unit-taught primary)
     # Ensemble of decorrelated trees; robust to scale; no normalisation needed
     print("\nTraining Random Forest...")
     t0 = time.time()
@@ -148,7 +148,7 @@ def train():
     results['xgb'] = evaluate("XGBoost", xgb, X_test, y_test)
     results['xgb']['train_s'] = round(train_s, 2)
 
-    # ── SVM with RBF kernel (beyond unit) ───────────────────────────────────
+    # SVM with RBF kernel (beyond unit)
     # Maximises margin in kernel-projected space; well-suited to 20-dim dense
     # features; RBF captures non-linear decision boundaries; needs scaling
     print("\nTraining SVM (RBF kernel)...")
@@ -161,7 +161,7 @@ def train():
     results['svm'] = evaluate("SVM (RBF kernel)", svm, X_test, y_test, scaler)
     results['svm']['train_s'] = round(train_s, 2)
 
-    # ── Feature importance (RF) ──────────────────────────────────────────────
+    # Feature importance (RF)
     importances = sorted(
         zip(feature_names, rf.feature_importances_),
         key=lambda x: x[1], reverse=True,
@@ -170,7 +170,7 @@ def train():
     for fname, imp in importances[:10]:
         print(f"  {fname:40s}  {imp:.4f}")
 
-    # ── Model comparison table ───────────────────────────────────────────────
+    # Model comparison table
     print("\n" + "="*70)
     print(f"  {'Model':<20} {'ROC-AUC':>8} {'F1':>8} {'Precision':>10} {'Recall':>8} {'Train(s)':>9}")
     print("="*70)
@@ -180,7 +180,7 @@ def train():
     best_key = max(results, key=lambda k: results[k]['roc_auc'])
     print(f"\nBest model by ROC-AUC: {best_key} ({results[best_key]['roc_auc']:.4f})")
 
-    # ── Save all models ──────────────────────────────────────────────────────
+    # Save all models 
     model_map = {'rf': rf, 'lr': lr, 'xgb': xgb, 'svm': svm}
     for name, model in model_map.items():
         with open(os.path.join(MODELS_DIR, f'{name}_model.pkl'), 'wb') as f:

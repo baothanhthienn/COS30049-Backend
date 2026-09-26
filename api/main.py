@@ -21,7 +21,8 @@ from api.schemas import (
 )
 from api import model_loader
 
-# In-memory session stats (resets on server restart)
+# Lock guards _stats across concurrent requests; FastAPI runs handlers in a
+# thread pool, so unsynchronised increments would produce silent count drift.
 _stats_lock = threading.Lock()
 _stats = {
     "total_requests": 0,
@@ -33,6 +34,8 @@ _stats = {
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
+    # Lifespan loads the model once at startup; avoids a cold-load penalty on
+    # the first request and surfaces missing-pkl errors before traffic arrives.
     model_loader.ensure_loaded()
     yield
 
@@ -58,7 +61,11 @@ def predict(req: PredictRequest):
         result = model_loader.predict(req.text)
     except Exception as exc:
         _logger.exception("predict failed")
-        raise HTTPException(status_code=500, detail="Prediction service unavailable.")
+        msg = str(exc)
+        # Surface missing-pkl errors directly so the caller knows to run train.py.
+        detail = msg if ("not found" in msg.lower() or "run `python" in msg.lower()) \
+            else "Prediction service unavailable."
+        raise HTTPException(status_code=500, detail=detail)
 
     with _stats_lock:
         _stats["total_requests"] += 1
@@ -99,8 +106,10 @@ def stats():
 
 @app.get("/health", response_model=HealthResponse)
 def health():
+    # Reflect the actual best model so the health check stays accurate after retraining.
+    model_name = model_loader.get_best_model_name()
     return HealthResponse(
         status="ok",
-        model="RandomForest",
+        model=model_name,
         version="1.0.0",
     )

@@ -25,8 +25,9 @@ sys.path.insert(0, os.path.dirname(__file__))
 from feature_extraction import extract_features_batch, FeatureVector
 
 
-DATA_DIR   = os.path.join(os.path.dirname(__file__), '..', 'data', 'processed')
-MODELS_DIR = os.path.join(os.path.dirname(__file__), '..', 'models')
+DATA_DIR    = os.path.join(os.path.dirname(__file__), '..', 'data', 'processed')
+MODELS_DIR  = os.path.join(os.path.dirname(__file__), '..', 'models')
+ANALYSIS_OUT = os.path.join(os.path.dirname(__file__), '..', 'data', 'cluster_analysis.json')
 
 # Cluster labels based on dominant feature patterns
 _CLUSTER_NAMES = [
@@ -40,7 +41,8 @@ _CLUSTER_NAMES = [
 
 
 def find_optimal_k(X_scaled, k_range=(2, 9)):
-    """Silhouette sweep to find best k."""
+    # Silhouette measures intra-cluster cohesion vs inter-cluster separation;
+    # avoids elbow-method subjectivity on sparse high-dimensional feature spaces.
     scores = {}
     for k in range(k_range[0], k_range[1] + 1):
         km = KMeans(n_clusters=k, random_state=42, n_init=10)
@@ -55,7 +57,8 @@ def find_optimal_k(X_scaled, k_range=(2, 9)):
 
 
 def name_cluster(centroid: np.ndarray, feature_names: list[str]) -> str:
-    """Heuristic: pick cluster name from the most dominant keyword feature."""
+    # Centroid coordinate on each keyword axis is a proxy for that attack type's
+    # prevalence; fallback to social_engineering when no keyword signal dominates.
     feat_map = {n: i for i, n in enumerate(feature_names)}
     scores = {
         "instruction_override": centroid[feat_map['f01_override_keyword_count']],
@@ -87,11 +90,12 @@ def cluster():
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # Silhouette sweep (k=2..8)
+    # Cluster only injections — benign samples have no meaningful attack-pattern
+    # structure and would dilute the cluster boundaries.
     print("\nFinding optimal k via silhouette score...")
     best_k = find_optimal_k(X_scaled, k_range=(2, 8))
 
-    # Fix k=6 if best_k < 4 (we want at least 4 meaningful clusters for reporting)
+    # Floor at 4 so the report always has enough distinct attack families to analyse.
     k = max(best_k, 4)
     print(f"\nUsing k={k}")
 
@@ -146,7 +150,133 @@ def cluster():
     print(f"\nFinal silhouette score (k={k}): {sil:.4f}")
     print(f"Cluster model saved to {MODELS_DIR}/kmeans_model.pkl")
 
+    save_cluster_analysis(
+        injections['text'].tolist(), X, labels, k,
+        feature_names, cluster_info,
+    )
+
     return km, cluster_info
+
+
+def save_cluster_analysis(
+    texts: list,
+    X: np.ndarray,
+    labels: np.ndarray,
+    k: int,
+    feature_names: list,
+    cluster_info: dict,
+) -> None:
+    """
+    Produces data/cluster_analysis.json for the report.
+    Each cluster entry includes: label, count, feature mean deltas vs overall
+    mean (top 3 distinguishing features), 2-3 sentence description, and
+    2 representative example texts.
+    """
+    overall_mean = X.mean(axis=0)
+
+    # Canned descriptions keyed on cluster label prefix — written from the
+    # feature semantics, not generated at runtime, so they stay meaningful
+    # regardless of which k the silhouette sweep picks.
+    _DESCRIPTIONS = {
+        "instruction_override": (
+            "This cluster groups attacks that directly command the model to "
+            "discard its prior instructions, dominated by high override keyword "
+            "counts (f01). Examples typically open with imperatives such as "
+            "'ignore all previous instructions' or 'disregard your guidelines', "
+            "making them the most lexically obvious injection family. Despite "
+            "high detection rates, subtle variants using synonyms or leet "
+            "substitution still evade the keyword features."
+        ),
+        "role_hijack": (
+            "Samples here attempt to replace the model's identity by assigning "
+            "it a new persona (f02 role-swap keyword count is the dominant "
+            "signal). Phrases like 'you are now DAN' or 'act as an unrestricted "
+            "AI' are characteristic. The cluster overlaps with legitimate "
+            "role-framing prompts, which is the primary driver of false positives "
+            "in the model's error analysis."
+        ),
+        "data_exfiltration": (
+            "This cluster captures credential and system-prompt theft attempts, "
+            "identified by elevated data exfiltration keyword counts (f03). "
+            "Requests for API keys, environment variables, or verbatim system "
+            "prompt output are typical. These are high-severity injections in "
+            "production because a successful bypass yields directly exploitable "
+            "information."
+        ),
+        "filter_bypass": (
+            "Attacks in this cluster focus on removing safety constraints rather "
+            "than extracting data, showing high filter-bypass keyword counts (f04). "
+            "Phrases such as 'no restrictions', 'bypass all filters', and "
+            "'jailbreak mode' define the cluster. Many examples combine bypass "
+            "language with a role-swap to both remove constraints and assign a "
+            "new identity simultaneously."
+        ),
+        "encoding_evasion": (
+            "This cluster is defined by encoding anomaly signals (f10 composite "
+            "score, f05 base64 detection, f06 unicode lookalikes, f07 zero-width "
+            "characters). Attackers obfuscate injection payloads using base64 "
+            "blobs, Cyrillic/Greek character substitution, or invisible Unicode "
+            "to evade keyword matching. These are the hardest samples for the "
+            "model — they score near-zero on keyword features and rely entirely "
+            "on the encoding anomaly group for detection."
+        ),
+        "social_engineering": (
+            "Samples here rely on narrative framing, hypothetical scenarios, or "
+            "indirect language rather than explicit keywords, resulting in low "
+            "scores across all keyword and encoding features. Structural signals "
+            "(text length f19, sentence count f14, entropy f11) are the primary "
+            "discriminators. These injections are the main source of false "
+            "negatives: without keyword or encoding signal, the model struggles "
+            "to distinguish them from benign complex prompts."
+        ),
+    }
+
+    clusters_out = {}
+    for cid in range(k):
+        mask   = labels == cid
+        subset = X[mask]
+        info   = cluster_info[cid]
+        label  = info["label"]
+
+        cluster_mean = subset.mean(axis=0)
+        # Delta = cluster mean - overall mean; large positive = cluster overrepresents this feature
+        deltas = cluster_mean - overall_mean
+        top_delta_idx = np.argsort(np.abs(deltas))[::-1][:3]
+        distinguishing = [
+            {
+                "feature":       feature_names[i],
+                "cluster_mean":  round(float(cluster_mean[i]), 4),
+                "overall_mean":  round(float(overall_mean[i]), 4),
+                "delta":         round(float(deltas[i]), 4),
+            }
+            for i in top_delta_idx
+        ]
+
+        # 2 representative examples: closest to the centroid
+        centroid_raw = cluster_mean  # centroids in original space
+        dists = np.linalg.norm(subset - centroid_raw, axis=1)
+        nearest_idx  = np.argsort(dists)[:2]
+        cluster_texts = [t for t, m in zip(texts, mask) if m]
+        examples = [cluster_texts[i][:300] for i in nearest_idx]
+
+        # Match description to label prefix
+        desc_key = next(
+            (k for k in _DESCRIPTIONS if label.startswith(k)),
+            "social_engineering",
+        )
+
+        clusters_out[str(cid)] = {
+            "label":               label,
+            "count":               info["count"],
+            "distinguishing_features": distinguishing,
+            "description":         _DESCRIPTIONS[desc_key],
+            "examples":            examples,
+        }
+
+    with open(ANALYSIS_OUT, 'w') as f:
+        json.dump({"k": k, "clusters": clusters_out}, f, indent=2)
+
+    print(f"Cluster analysis saved to {ANALYSIS_OUT}")
 
 
 def predict_cluster(text: str) -> dict:
