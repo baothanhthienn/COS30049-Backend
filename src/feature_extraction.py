@@ -138,7 +138,7 @@ _IMPERATIVE_VERBS = {
     "print", "access", "expose", "leak", "dump", "disable", "remove",
 }
 
-# Pre-compile all regex patterns at import time so the cost is paid once, not
+# Compile all regex patterns at import time so the cost is paid once, not
 # on every request. Each phrase is wrapped in a non-capturing group so the
 # alternation '|' doesn't interfere with inner groups inside individual patterns.
 def _compile(phrases: list[str]) -> re.Pattern:
@@ -166,6 +166,12 @@ _INDIRECT_FRAMING_PHRASES = [
     r"game\s+where\s+(the\s+)?rules?",
     r"character\s+(who\s+)?(always\s+)?reveals?",
     r"ai\s+that\s+(always\s+tells|reveals|has\s+no\s+restrictions)",
+    r"\bdan\b.*\b(no\s+restrictions|unrestricted|free)",            
+    r"pretend\s+(you\s+are\s+)?dan\b",                              
+    r"(safety|content)\s+filter(s)?(\s+are)?\s+(switched?\s+off|disabled?|removed?|off)",
+    r"ignore\s+your\s+(guidelines?|rules?|restrictions?|filters?|training)",    
+    r"(in\s+this\s+)?simulation[,.]?\s+(you\s+have\s+no|there\s+are\s+no)",     
+    r"(without|no)\s+a?\s*system\s+prompt",                        
 ]
 _RE_INDIRECT = _compile(_INDIRECT_FRAMING_PHRASES)
 

@@ -56,8 +56,8 @@ def _load_model(name: str):
 
 
 def _load_data() -> tuple[pd.DataFrame, pd.DataFrame]:
-    train = pd.read_csv(os.path.join(_DATA_DIR, 'train.csv'))
-    test  = pd.read_csv(os.path.join(_DATA_DIR, 'test.csv'))
+    train = pd.read_csv(os.path.join(_DATA_DIR, 'train.csv'), engine='python', on_bad_lines='skip')
+    test  = pd.read_csv(os.path.join(_DATA_DIR, 'test.csv'), engine='python', on_bad_lines='skip')
     return train, test
 
 

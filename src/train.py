@@ -43,8 +43,8 @@ MODELS_DIR = os.path.join(os.path.dirname(__file__), '..', 'models')
 
 
 def load_data():
-    train = pd.read_csv(os.path.join(DATA_DIR, 'train.csv'))
-    test  = pd.read_csv(os.path.join(DATA_DIR, 'test.csv'))
+    train = pd.read_csv(os.path.join(DATA_DIR, 'train.csv'), engine='python', on_bad_lines='skip')
+    test  = pd.read_csv(os.path.join(DATA_DIR, 'test.csv'), engine='python', on_bad_lines='skip')
     print(f"Train: {len(train)} rows  |  Test: {len(test)} rows")
     print(f"Train label dist:\n{train['label'].value_counts()}")
     return train, test
