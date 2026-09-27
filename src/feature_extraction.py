@@ -1,5 +1,5 @@
 """
-Feature extraction — 20 features in 3 groups.
+Feature extraction — 21 features in 4 groups.
 
 Group 1 — Keyword / phrase signals (4 features):
   f01  override_keyword_count    imperative override phrases ("ignore all", "disregard")
@@ -46,6 +46,12 @@ Group 3 — Structural signals (10 features):
                                  [Nobata et al., 2016 — length as baseline structural feature]
   f20  word_count                total word count of decoded_text
                                  [Nobata et al., 2016 — length as baseline structural feature]
+
+Group 4 — Indirect framing signals (1 feature):
+  f21  indirect_framing_score    normalised count (0–1) of roleplay/hypothetical injection patterns;
+                                 targets indirect framing attacks that deliberately avoid explicit keywords
+                                 [Perez & Ribeiro, 2022 — indirect framing as keyword-evasion strategy;
+                                  Greshake et al., 2023 — hypothetical/narrative wrapping in indirect injections]
 
 All features are floats (ints cast to float) for scikit-learn compatibility.
 Span computation is on original_text so highlight indices survive encoding.
@@ -144,6 +150,25 @@ _RE_ROLE_SWAP   = _compile(_ROLE_SWAP_PHRASES)
 _RE_DATA_EXFIL  = _compile(_DATA_EXFIL_PHRASES)
 _RE_FILTER_BYP  = _compile(_FILTER_BYPASS_PHRASES)
 
+# Indirect framing: roleplay/hypothetical injection patterns that evade keyword filters.
+_INDIRECT_FRAMING_PHRASES = [
+    r"let'?s\s+play\s+a\s+(game|scenario|role)",
+    r"write\s+a\s+(short\s+)?story\s+(about|where|in\s+which)",
+    r"in\s+this\s+(hypothetical|scenario|simulation|story|roleplay|exercise|game)",
+    r"for\s+this\s+(exercise|scenario|game|simulation|roleplay)",
+    r"if\s+you\s+(could\s+ignore|were\s+free|had\s+no\s+restrictions|weren'?t\s+bound)",
+    r"what\s+if\s+you\s+(were\s+free|had\s+no|could\s+ignore)",
+    r"as\s+a\s+(fictional|hypothetical|character\s+who)",
+    r"in\s+a\s+(world\s+where|story\s+where|scenario\s+where)",
+    r"(your\s+)?(new\s+)?rules?\s+(for\s+this|don'?t\s+apply|no\s+longer|are\s+suspended)",
+    r"all\s+(previous\s+)?rules?\s+(don'?t|no\s+longer|are\s+suspended|don'?t\s+apply)",
+    r"first\s+rule\s+is\s+that",
+    r"game\s+where\s+(the\s+)?rules?",
+    r"character\s+(who\s+)?(always\s+)?reveals?",
+    r"ai\s+that\s+(always\s+tells|reveals|has\s+no\s+restrictions)",
+]
+_RE_INDIRECT = _compile(_INDIRECT_FRAMING_PHRASES)
+
 # Lookalike char set (same chars as the lookalike map in preprocessing)
 _LOOKALIKE_CHARS = set(
     'аеорсхуіВМНКРСТХαβγεικνορτυχ'
@@ -186,6 +211,7 @@ class FeatureVector(NamedTuple):
     f18_imperative_opener:         float
     f19_text_length:               float
     f20_word_count:                float
+    f21_indirect_framing_score:    float
 
     def to_list(self) -> list[float]:
         return list(self)
@@ -298,7 +324,7 @@ def _encoding_anomaly_score(
 # Main extraction function
 def extract_features(processed: ProcessedText) -> FeatureVector:
     """
-    Extract all 20 features from a ProcessedText named tuple.
+    Extract all 21 features from a ProcessedText named tuple.
     Call preprocess() first to get a ProcessedText.
     """
     orig = processed.original_text
@@ -333,10 +359,14 @@ def extract_features(processed: ProcessedText) -> FeatureVector:
     f19 = float(len(orig))
     f20 = float(len(_WORD_RE.findall(dec)))
 
+    # Group 4: indirect framing (normalised to 0–1, cap at 3 matches)
+    f21 = min(float(len(_RE_INDIRECT.findall(dec))), 3.0) / 3.0
+
     return FeatureVector(
         f01, f02, f03, f04,
         f05, f06, f07, f08, f09, f10,
         f11, f12, f13, f14, f15, f16, f17, f18, f19, f20,
+        f21,
     )
 
 

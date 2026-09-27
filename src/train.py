@@ -3,7 +3,7 @@ Model training pipeline — trains RF, LR, XGBoost, SVM on combined dataset.
 
 Steps:
   1. Load data/processed/train.csv and test.csv (built by src/data_loader.py)
-  2. Extract 20 features via extract_features_batch()
+  2. Extract 21 features via extract_features_batch()
   3. Train Logistic Regression baseline (unit-taught, scaled)
   4. Train Random Forest (unit-taught, primary baseline)
   5. Train XGBoost (beyond unit — gradient boosted trees, native imbalance handling)

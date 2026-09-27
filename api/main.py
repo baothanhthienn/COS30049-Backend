@@ -55,7 +55,7 @@ app.add_middleware(
 )
 
 
-@app.post("/predict", response_model=PredictResponse)
+@app.post("/predict", response_model=PredictResponse, responses={500: {"description": "Model not loaded — run `python3 src/train.py` first"}})
 def predict(req: PredictRequest):
     try:
         result = model_loader.predict(req.text)
