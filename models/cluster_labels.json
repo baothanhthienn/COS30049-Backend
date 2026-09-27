@@ -1,105 +1,105 @@
 {
   "0": {
-    "label": "role_hijack",
-    "count": 547,
+    "label": "social_engineering",
+    "count": 2216,
     "top_features": [
       [
-        "f20_word_count",
-        1.4944
+        "f01_override_keyword_count",
+        -0.3659
       ],
       [
         "f19_text_length",
-        1.4802
+        -0.3653
+      ],
+      [
+        "f20_word_count",
+        -0.3633
       ],
       [
         "f11_char_entropy",
-        1.3392
+        -0.3427
       ],
       [
-        "f02_role_swap_keyword_count",
-        0.8889
-      ],
-      [
-        "f12_uppercase_ratio",
-        0.8303
+        "f18_imperative_opener",
+        -0.2789
       ]
     ]
   },
   "1": {
-    "label": "data_exfiltration",
-    "count": 2519,
+    "label": "role_hijack",
+    "count": 500,
     "top_features": [
       [
-        "f19_text_length",
-        -0.3922
+        "f20_word_count",
+        1.6143
       ],
       [
-        "f20_word_count",
-        -0.3917
+        "f19_text_length",
+        1.5989
       ],
       [
         "f11_char_entropy",
-        -0.3625
-      ],
-      [
-        "f17_exclamation_count",
-        -0.2232
+        1.3853
       ],
       [
         "f02_role_swap_keyword_count",
-        -0.2182
+        0.9792
+      ],
+      [
+        "f17_exclamation_count",
+        0.9127
       ]
     ]
   },
   "2": {
-    "label": "encoding_evasion",
-    "count": 121,
+    "label": "instruction_override",
+    "count": 407,
     "top_features": [
       [
+        "f01_override_keyword_count",
+        2.2323
+      ],
+      [
+        "f18_imperative_opener",
+        1.7161
+      ],
+      [
+        "f13_avg_word_length",
+        1.2961
+      ],
+      [
+        "f15_avg_sentence_length",
+        -0.5112
+      ],
+      [
         "f20_word_count",
-        1.6538
-      ],
-      [
-        "f19_text_length",
-        1.6413
-      ],
-      [
-        "f11_char_entropy",
-        1.4516
-      ],
-      [
-        "f19_text_length",
-        1.4462
-      ],
-      [
-        "f17_exclamation_count",
-        0.9309
+        -0.4186
       ]
     ]
   },
   "3": {
-    "label": "encoding_evasion_3",
-    "count": 1,
+    "label": "encoding_evasion",
+    "count": 123,
     "top_features": [
       [
-        "f09_non_ascii_ratio",
-        51.6674
-      ],
-      [
-        "f06_unicode_lookalike_count",
-        46.241
-      ],
-      [
         "f10_encoding_anomaly_score",
-        5.2947
+        5.0337
       ],
       [
-        "f12_uppercase_ratio",
-        2.845
+        "f05_has_base64_blob",
+        4.9961
       ],
       [
         "f11_char_entropy",
-        1.646
+        1.4732
+      ],
+      [
+        "f19_text_length",
+        1.4411
+      ],
+      [
+        "f20_word_count",
+        1.3678
       ]
     ]
   }

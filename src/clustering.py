@@ -76,7 +76,7 @@ def name_cluster(centroid: np.ndarray, feature_names: list[str]) -> str:
 def cluster():
     os.makedirs(MODELS_DIR, exist_ok=True)
 
-    train_df = pd.read_csv(os.path.join(DATA_DIR, 'train.csv'))
+    train_df = pd.read_csv(os.path.join(DATA_DIR, 'train.csv'), on_bad_lines='skip')
     injections = train_df[train_df['label'] == 1].copy()
     print(f"Injection samples for clustering: {len(injections)}")
 

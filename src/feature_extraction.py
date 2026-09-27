@@ -119,6 +119,8 @@ _OVERRIDE_PHRASES = [
     r"do\s+not\s+(follow|obey|respect)\s+(your|the|any|previous)\s+instructions",
     r"you\s+must\s+ignore",
     r"pretend\s+(that\s+)?you\s+(have\s+no|don'?t\s+have)",
+    r"ignore\s+your\s+(guidelines?|rules?|restrictions?|filters?|training)",
+    r"(in\s+this\s+)?simulation[,.]?\s+(you\s+have\s+no|there\s+are\s+no)",
 ]
 
 # NOTE: bare "act as <anything>" was removed from this list. It matched
@@ -170,7 +172,7 @@ _DATA_EXFIL_PHRASES = [
     # own regardless of verb. See data/error_analysis.json for the case
     # this closes.
     r"\bspill\s+(out\s+)?(any\s+of\s+)?(your|the|all)\b",
-    r"\bsystem\s+(information|prompt|instructions?)\b",
+    r"\bsystem\s+(information|prompts?|instructions?)\b",
     # ROUND 2 — found via live /predict test: "important security code of
     # your system" evaded every f01-f04/f21 pattern. Two gaps:
     #  (a) "security code" wasn't in the credential noun list at all
@@ -216,7 +218,7 @@ _NARRATIVE_FRAME_PHRASES = [
     r"\bimagine\s+(a\s+)?(world|scenario|story|universe)\s+where\b",
     r"\b(the\s+)?first\s+rule\s+is\b",
     r"\bno\s+rules?\b",
-    r"\bwrite\s+a\s+story\s+(where|in\s+which)\s+you\b",
+    r"\bwrite\s+a\s+(short\s+)?story\s+(where|in\s+which)\b",
     r"\bfor\s+(this|the\s+rest\s+of\s+this)\s+(story|conversation|roleplay)\b",
     r"\byou\s+must\s+answer\s+everything\b",
     # Found via live test: "play a roleplay game which you are miku" — the
