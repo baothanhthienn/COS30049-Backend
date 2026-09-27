@@ -1,15 +1,27 @@
 """
-Feature extraction — 20 features in 3 groups.
+Feature extraction — 21 features in 4 groups.
 
-Group 1 — Keyword / phrase signals (4 features):
+Group 1 — Keyword / phrase signals (5 features):
   f01  override_keyword_count    imperative override phrases ("ignore all", "disregard")
                                  [Perez et al., 2022 — "Ignore Previous Prompt"; Liu et al., 2023 — "Prompt Injection Attacks"]
-  f02  role_swap_keyword_count   persona/role hijack phrases ("act as", "you are now")
+  f02  role_swap_keyword_count   persona/role hijack phrases ("you are now", "act as an unrestricted AI")
                                  [Greshake et al., 2023 — "Not What You've Signed Up For"]
+                                 NOTE: bare "act as <role>" was found to false-positive heavily on
+                                 legitimate persona requests ("act as a Python tutor"). The pattern
+                                 now requires "act as" to be paired with a restriction-removal /
+                                 identity-replacement qualifier (unrestricted, jailbroken, DAN, etc.)
+                                 to fire. Broader hijack phrasing ("you are now", "pretend to be")
+                                 is unaffected.
   f03  data_exfil_keyword_count  data/credential theft phrases ("give me your", "api key")
                                  [Greshake et al., 2023 — indirect injection via exfiltration intent]
   f04  filter_bypass_count       filter-bypass phrases ("bypass", "jailbreak", "no restrictions")
                                  [Perez et al., 2022 — "Ignore Previous Prompt"; Wei et al., 2023 — "Jailbroken"]
+  f21  narrative_frame_count     game / hypothetical / story-wrapper jailbreak phrases
+                                 ("let's play a game", "hypothetically", "first rule is", "no rules")
+                                 [Wei et al., 2023 — "Jailbroken": narrative/roleplay framing bypasses
+                                 keyword-based filters by embedding intent in story structure rather
+                                 than direct commands. Added after error analysis found this pattern
+                                 was the dominant false-negative class — see evaluate.py FN findings.]
 
 Group 2 — Encoding anomaly signals (6 features):
   f05  has_base64_blob           1 if a valid base64 blob (≥16 chars) was detected
@@ -50,6 +62,11 @@ Group 3 — Structural signals (10 features):
 All features are floats (ints cast to float) for scikit-learn compatibility.
 Span computation is on original_text so highlight indices survive encoding.
 
+IMPORTANT: this file now produces 21 features (added f21). Any saved .pkl model
+trained on the old 20-feature layout is INCOMPATIBLE with this version and must
+be retrained via `python3 src/train.py` (and re-clustered via `python3 src/clustering.py`)
+before the API will serve correct predictions.
+
 References (Harvard):
   Boucher, N., Shumailov, I., Anderson, R. and Papernot, N. (2022) 'Bad Characters: Imperceptible NLP
     Attacks', IEEE Symposium on Security and Privacy.
@@ -84,6 +101,13 @@ _OVERRIDE_PHRASES = [
     r"ignore\s+(all\s+)?(previous|prior|above|earlier|system)",
     r"disregard\s+(all\s+)?(previous|prior|above|earlier|system)",
     r"forget\s+(all\s+)?(previous|prior|above|earlier|your)",
+    # Widened after a live /predict test found "forget everything i taught"
+    # scored zero on this feature — the original pattern only matched
+    # "forget (your/previous/...)", not "forget everything <pronoun>...".
+    # Requires a pronoun after "everything" so generic phrases like "forget
+    # everything and start fresh" (no clear instruction-erasure target) don't
+    # fire; see data/error_analysis.json for the case this closes.
+    r"forget\s+everything\s+(i|you|that)\b",
     r"override\s+(all\s+)?(previous|prior|above|safety|system)",
     r"bypass\s+(all\s+)?instructions",
     r"do\s+not\s+(follow|obey|respect)\s+(your|the|any|previous)\s+instructions",
@@ -91,16 +115,36 @@ _OVERRIDE_PHRASES = [
     r"pretend\s+(that\s+)?you\s+(have\s+no|don'?t\s+have)",
 ]
 
+# NOTE: bare "act as <anything>" was removed from this list. It matched
+# legitimate requests like "act as a Python tutor" or "act as a career coach",
+# which made up the majority of the model's false positives (see
+# data/error_analysis.json). "act as" now only counts as a role-swap signal
+# when paired with a restriction-removal / identity-replacement qualifier —
+# see _ROLE_SWAP_ACT_AS_QUALIFIED below. Broader hijack phrasing that doesn't
+# suffer from this ambiguity is kept as-is.
 _ROLE_SWAP_PHRASES = [
-    r"\bact\s+as\b",
     r"\byou\s+are\s+now\b",
-    r"\byou\s+will\s+now\s+(be|act|pretend|play)",
+    # Widened from "you will NOW (be|act|...)" to make "now" optional —
+    # a live test found "you will be play a roleplay game which you are
+    # miku" evaded this because it omits "now". "now" was making the
+    # pattern stricter than the actual attack surface requires.
+    r"\byou\s+will\s+(now\s+)?(be|act|pretend|play)",
     r"\bpretend\s+(to\s+be|you\s+are)\b",
     r"\bplay\s+(the\s+role|as)\b",
     r"\bswitch\s+(to|your)\s+(role|persona|mode)\b",
     r"\bimagine\s+you\s+(are|were)\b",
     r"\bfrom\s+now\s+on\s+(you\s+are|act)\b",
     r"\byour\s+new\s+(role|persona|identity|name)\b",
+]
+
+# Qualified "act as" — only fires when the assigned persona is explicitly
+# framed as unrestricted/hostile, e.g. "act as an unrestricted AI",
+# "act as DAN", "act as a jailbroken assistant". This is the disambiguating
+# fix for the "act as a tutor" false-positive pattern.
+_ROLE_SWAP_ACT_AS_QUALIFIED = [
+    r"\bact\s+as\s+(an?\s+)?(unrestricted|jailbroken|uncensored|evil|dan|unfiltered|"
+    r"amoral|unbound|rogue)\b",
+    r"\bact\s+as\s+(an?\s+)?ai\s+(with\s+no|without\s+any)\s+(restrictions?|rules?|limits?|filters?)\b",
 ]
 
 _DATA_EXFIL_PHRASES = [
@@ -111,6 +155,35 @@ _DATA_EXFIL_PHRASES = [
     r"\bsensitive\s+(data|information|records)\b",
     r"\bpersonal\s+(data|information|records|details)\b",
     r"\b(user|customer|patient)\s+(data|information|records)\b",
+    # Widened after a live /predict test found "spill out any of your system
+    # information" scored zero — "spill" wasn't in the verb list, and
+    # "system information" wasn't in the target-noun list (only
+    # data/information/records/database following access/expose/leak/dump).
+    # "spill" is added as a verb synonym; "system information/prompt" is
+    # added as its own noun pattern since it's a high-signal target on its
+    # own regardless of verb. See data/error_analysis.json for the case
+    # this closes.
+    r"\bspill\s+(out\s+)?(any\s+of\s+)?(your|the|all)\b",
+    r"\bsystem\s+(information|prompt|instructions?)\b",
+    # ROUND 2 — found via live /predict test: "important security code of
+    # your system" evaded every f01-f04/f21 pattern. Two gaps:
+    #  (a) "security code" wasn't in the credential noun list at all
+    #  (b) our f03 "system ..." pattern only matched "system <noun>" word
+    #      order, not "<noun> ... of your system" (the reversed order used
+    #      here). Adding "security code" as a standalone credential noun
+    #      sidesteps the word-order problem entirely — it fires wherever the
+    #      phrase appears, regardless of what surrounds it.
+    r"\bsecurity\s+code\b",
+    # "tell/give/... everything i ask/want/say" — generalises the existing
+    # "tell me your/the/all" pattern to catch "tell everything i ask", which
+    # the original pattern missed (it required "me" immediately followed by
+    # your/the/all). Requires a first-person demand clause right after
+    # "everything" ("i ask/want/say/need") specifically so this DOESN'T match
+    # innocent uses like "tell me everything about your return policy" — an
+    # earlier, broader version of this pattern (bare "tell...everything")
+    # was tested and caused exactly that false positive, so it was narrowed
+    # to this form instead.
+    r"\b(give|tell|show|reveal|share|send|output|print|display|spill)\s+(me\s+)?everything\s+i\s+(ask|want|say|need|tell)\b",
 ]
 
 _FILTER_BYPASS_PHRASES = [
@@ -126,6 +199,26 @@ _FILTER_BYPASS_PHRASES = [
     r"\bsafety\s+(is\s+)?(off|disabled|removed)\b",
 ]
 
+# NEW — narrative / hypothetical / game framing. Added after evaluate.py error
+# analysis found this was the dominant false-negative pattern: attacks that
+# wrap intent in a story or game so no override/bypass keyword ever appears
+# directly (e.g. "let's play a game where the first rule is you have no rules").
+_NARRATIVE_FRAME_PHRASES = [
+    r"\blet'?s\s+play\s+a\s+game\b",
+    r"\bhypothetically\b",
+    r"\bin\s+this\s+(game|story|scenario|roleplay)\b",
+    r"\bimagine\s+(a\s+)?(world|scenario|story|universe)\s+where\b",
+    r"\b(the\s+)?first\s+rule\s+is\b",
+    r"\bno\s+rules?\b",
+    r"\bwrite\s+a\s+story\s+(where|in\s+which)\s+you\b",
+    r"\bfor\s+(this|the\s+rest\s+of\s+this)\s+(story|conversation|roleplay)\b",
+    r"\byou\s+must\s+answer\s+everything\b",
+    # Found via live test: "play a roleplay game which you are miku" — the
+    # existing patterns require "let's play A game" or "in this roleplay",
+    # neither matches "play A roleplay game" (different word order/phrasing).
+    r"\broleplay\s+game\b",
+]
+
 _IMPERATIVE_VERBS = {
     "ignore", "disregard", "forget", "override", "bypass", "pretend",
     "act", "play", "imagine", "reveal", "give", "show", "tell", "output",
@@ -139,10 +232,12 @@ def _compile(phrases: list[str]) -> re.Pattern:
     combined = "|".join(f"(?:{p})" for p in phrases)
     return re.compile(combined, re.IGNORECASE)
 
-_RE_OVERRIDE    = _compile(_OVERRIDE_PHRASES)
-_RE_ROLE_SWAP   = _compile(_ROLE_SWAP_PHRASES)
-_RE_DATA_EXFIL  = _compile(_DATA_EXFIL_PHRASES)
-_RE_FILTER_BYP  = _compile(_FILTER_BYPASS_PHRASES)
+_RE_OVERRIDE         = _compile(_OVERRIDE_PHRASES)
+_RE_ROLE_SWAP        = _compile(_ROLE_SWAP_PHRASES)
+_RE_ROLE_SWAP_ACTAS  = _compile(_ROLE_SWAP_ACT_AS_QUALIFIED)
+_RE_DATA_EXFIL       = _compile(_DATA_EXFIL_PHRASES)
+_RE_FILTER_BYP       = _compile(_FILTER_BYPASS_PHRASES)
+_RE_NARRATIVE_FRAME  = _compile(_NARRATIVE_FRAME_PHRASES)
 
 # Lookalike char set (same chars as the lookalike map in preprocessing)
 _LOOKALIKE_CHARS = set(
@@ -186,6 +281,7 @@ class FeatureVector(NamedTuple):
     f18_imperative_opener:         float
     f19_text_length:               float
     f20_word_count:                float
+    f21_narrative_frame_count:     float
 
     def to_list(self) -> list[float]:
         return list(self)
@@ -219,10 +315,12 @@ def find_spans(original_text: str, decoded_text: str) -> list[Span]:
     """
     spans: list[Span] = []
     for pattern, label in [
-        (_RE_OVERRIDE,   "instruction_override"),
-        (_RE_ROLE_SWAP,  "role_swap"),
-        (_RE_DATA_EXFIL, "data_exfiltration"),
-        (_RE_FILTER_BYP, "filter_bypass"),
+        (_RE_OVERRIDE,        "instruction_override"),
+        (_RE_ROLE_SWAP,       "role_swap"),
+        (_RE_ROLE_SWAP_ACTAS, "role_swap"),
+        (_RE_DATA_EXFIL,      "data_exfiltration"),
+        (_RE_FILTER_BYP,      "filter_bypass"),
+        (_RE_NARRATIVE_FRAME, "narrative_frame"),
     ]:
         for m in pattern.finditer(decoded_text):
             spans.append(Span(m.start(), m.end(), label))
@@ -298,7 +396,7 @@ def _encoding_anomaly_score(
 # Main extraction function
 def extract_features(processed: ProcessedText) -> FeatureVector:
     """
-    Extract all 20 features from a ProcessedText named tuple.
+    Extract all 21 features from a ProcessedText named tuple.
     Call preprocess() first to get a ProcessedText.
     """
     orig = processed.original_text
@@ -306,7 +404,7 @@ def extract_features(processed: ProcessedText) -> FeatureVector:
 
     # Group 1: keyword signals (search decoded_text — normalised)
     f01 = float(len(_RE_OVERRIDE.findall(dec)))
-    f02 = float(len(_RE_ROLE_SWAP.findall(dec)))
+    f02 = float(len(_RE_ROLE_SWAP.findall(dec)) + len(_RE_ROLE_SWAP_ACTAS.findall(dec)))
     f03 = float(len(_RE_DATA_EXFIL.findall(dec)))
     f04 = float(len(_RE_FILTER_BYP.findall(dec)))
 
@@ -333,10 +431,14 @@ def extract_features(processed: ProcessedText) -> FeatureVector:
     f19 = float(len(orig))
     f20 = float(len(_WORD_RE.findall(dec)))
 
+    # Group 4 (new): narrative / game-framing signal
+    f21 = float(len(_RE_NARRATIVE_FRAME.findall(dec)))
+
     return FeatureVector(
         f01, f02, f03, f04,
         f05, f06, f07, f08, f09, f10,
         f11, f12, f13, f14, f15, f16, f17, f18, f19, f20,
+        f21,
     )
 
 

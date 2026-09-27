@@ -1,58 +1,58 @@
 {
   "0": {
-    "label": "data_exfiltration",
-    "count": 2514,
+    "label": "role_hijack",
+    "count": 547,
     "top_features": [
       [
-        "f19_text_length",
-        -0.3954
+        "f20_word_count",
+        1.4944
       ],
       [
-        "f20_word_count",
-        -0.3947
+        "f19_text_length",
+        1.4802
       ],
       [
         "f11_char_entropy",
-        -0.3607
+        1.3392
       ],
       [
         "f02_role_swap_keyword_count",
-        -0.2463
+        0.8889
       ],
       [
-        "f17_exclamation_count",
-        -0.2221
+        "f12_uppercase_ratio",
+        0.8303
       ]
     ]
   },
   "1": {
-    "label": "encoding_evasion",
-    "count": 1,
+    "label": "data_exfiltration",
+    "count": 2519,
     "top_features": [
       [
-        "f09_non_ascii_ratio",
-        51.6638
+        "f19_text_length",
+        -0.3922
       ],
       [
-        "f06_unicode_lookalike_count",
-        46.241
-      ],
-      [
-        "f10_encoding_anomaly_score",
-        5.2946
-      ],
-      [
-        "f12_uppercase_ratio",
-        2.845
+        "f20_word_count",
+        -0.3917
       ],
       [
         "f11_char_entropy",
-        1.6794
+        -0.3625
+      ],
+      [
+        "f17_exclamation_count",
+        -0.2232
+      ],
+      [
+        "f02_role_swap_keyword_count",
+        -0.2182
       ]
     ]
   },
   "2": {
-    "label": "encoding_evasion_2",
+    "label": "encoding_evasion",
     "count": 121,
     "top_features": [
       [
@@ -65,11 +65,11 @@
       ],
       [
         "f11_char_entropy",
-        1.4479
+        1.4516
       ],
       [
         "f19_text_length",
-        1.445
+        1.4462
       ],
       [
         "f20_word_count",
@@ -78,28 +78,28 @@
     ]
   },
   "3": {
-    "label": "role_hijack",
-    "count": 552,
+    "label": "encoding_evasion_3",
+    "count": 1,
     "top_features": [
       [
-        "f20_word_count",
-        1.498
+        "f09_non_ascii_ratio",
+        51.6674
       ],
       [
-        "f19_text_length",
-        1.485
+        "f06_unicode_lookalike_count",
+        46.241
       ],
       [
-        "f11_char_entropy",
-        1.3222
-      ],
-      [
-        "f02_role_swap_keyword_count",
-        0.9768
+        "f10_encoding_anomaly_score",
+        5.2947
       ],
       [
         "f12_uppercase_ratio",
-        0.8166
+        2.845
+      ],
+      [
+        "f11_char_entropy",
+        1.646
       ]
     ]
   }

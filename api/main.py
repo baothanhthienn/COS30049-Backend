@@ -84,6 +84,7 @@ def predict(req: PredictRequest):
         cluster_label=result["cluster_label"],
         spans=[SpanOut(**s) for s in result["spans"]],
         decoded_text=result["decoded_text"],
+        rule_boost_applied=result["rule_boost_applied"],
     )
 
 
