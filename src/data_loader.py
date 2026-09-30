@@ -49,8 +49,6 @@ def _load_secondary() -> pd.DataFrame:
 
 
 def _load_tertiary() -> pd.DataFrame:
-    # jackhhao has 'prompt' column and 'type' (jailbreak | benign)
-    # jailbreak attacks overlap with prompt injections — both try to override model behaviour
     ds = load_dataset('jackhhao/jailbreak-classification', split='train')
     df = ds.to_pandas()
 
@@ -86,8 +84,8 @@ def build_combined(
     combined = combined.dropna(subset=['text', 'label'])
     combined['label'] = combined['label'].astype(int)
 
+    # Save tertiary splits 
     if save_raw:
-        # Save tertiary splits alongside primary/secondary for record
         tertiary_train, tertiary_test = train_test_split(
             tertiary, test_size=test_size, stratify=tertiary['label'], random_state=random_state
         )
@@ -95,7 +93,6 @@ def build_combined(
         tertiary_train.to_csv(os.path.join(RAW_DIR, 'tertiary_train.csv'), index=False)
         tertiary_test.to_csv(os.path.join(RAW_DIR, 'tertiary_test.csv'),  index=False)
 
-    # Re-split the whole combined set so train/test proportions are consistent
     train_df, test_df = train_test_split(
         combined, test_size=test_size, stratify=combined['label'], random_state=random_state
     )
@@ -103,7 +100,6 @@ def build_combined(
     os.makedirs(PROCESSED_DIR, exist_ok=True)
     combined.to_csv(os.path.join(PROCESSED_DIR, 'combined_dataset.csv'), index=False)
 
-    # Replace the existing processed train/test with the new combined split
     train_df.to_csv(os.path.join(PROCESSED_DIR, 'train.csv'), index=False)
     test_df.to_csv(os.path.join(PROCESSED_DIR, 'test.csv'),  index=False)
 
