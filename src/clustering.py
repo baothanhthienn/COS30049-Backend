@@ -19,7 +19,6 @@ import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import silhouette_score
-from sklearn.decomposition import PCA
 
 sys.path.insert(0, os.path.dirname(__file__))
 from feature_extraction import extract_features_batch, FeatureVector
@@ -277,30 +276,6 @@ def save_cluster_analysis(
         json.dump({"k": k, "clusters": clusters_out}, f, indent=2)
 
     print(f"Cluster analysis saved to {ANALYSIS_OUT}")
-
-
-def predict_cluster(text: str) -> dict:
-    """
-    Predict which injection cluster a text belongs to.
-    Returns {'cluster_id': int, 'label': str}.
-    Used by the FastAPI /predict endpoint.
-    """
-    model_path = os.path.join(MODELS_DIR, 'kmeans_model.pkl')
-    labels_path = os.path.join(MODELS_DIR, 'cluster_labels.json')
-
-    with open(model_path, 'rb') as f:
-        bundle = pickle.load(f)
-
-    with open(labels_path) as f:
-        cluster_labels = json.load(f)
-
-    from feature_extraction import extract_features_from_text
-    features, _ = extract_features_from_text(text)
-    X = np.array([features.to_list()], dtype=np.float32)
-    X_scaled = bundle['scaler'].transform(X)
-    cid = int(bundle['kmeans'].predict(X_scaled)[0])
-    label = cluster_labels[str(cid)]['label']
-    return {'cluster_id': cid, 'label': label}
 
 
 if __name__ == '__main__':

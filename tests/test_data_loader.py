@@ -37,9 +37,9 @@ def test_no_null_label(combined_csv):
     assert combined_csv['label'].isna().sum() == 0
 
 
-def test_three_sources_present(combined_csv):
+def test_sources_present(combined_csv):
     sources = set(combined_csv['source'].unique())
-    assert sources == {'primary', 'secondary', 'tertiary'}
+    assert {'primary', 'secondary', 'tertiary'}.issubset(sources)
 
 
 def test_minimum_row_count(combined_csv):

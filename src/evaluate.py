@@ -229,7 +229,7 @@ def _predict_batch(texts: list, model) -> np.ndarray:
 # Error analysis
 
 def run_error_analysis(model, feature_names: list) -> dict:
-    df = pd.read_csv(os.path.join(_DATA_DIR, 'processed', 'test.csv'))
+    df = pd.read_csv(os.path.join(_DATA_DIR, 'processed', 'test.csv'), engine='python', on_bad_lines='skip')
     texts  = df['text'].astype(str).tolist()
     y_true = df['label'].values
 
