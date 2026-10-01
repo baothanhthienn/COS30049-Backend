@@ -104,9 +104,11 @@ from preprocessing import ProcessedText, preprocess
 # Keyword lists 
 
 _OVERRIDE_PHRASES = [
-    r"ignore\s+(all\s+)?(previous|prior|above|earlier|system)",
-    r"disregard\s+(all\s+)?(previous|prior|above|earlier|system)",
-    r"forget\s+(all\s+)?(previous|prior|above|earlier|your)",
+    # Verb-tense widening: `verbs?` so 3rd-person forms ("ignores all previous
+    # instructions") also match. Same bug class as the prompts? plural fix.
+    r"ignores?\s+(all\s+)?(previous|prior|above|earlier|system)",
+    r"disregards?\s+(all\s+)?(previous|prior|above|earlier|system)",
+    r"forgets?\s+(all\s+)?(previous|prior|above|earlier|your)",
     # Widened after a live /predict test found "forget everything i taught"
     # scored zero on this feature — the original pattern only matched
     # "forget (your/previous/...)", not "forget everything <pronoun>...".
@@ -114,8 +116,8 @@ _OVERRIDE_PHRASES = [
     # everything and start fresh" (no clear instruction-erasure target) don't
     # fire; see data/error_analysis.json for the case this closes.
     r"forget\s+everything\s+(i|you|that)\b",
-    r"override\s+(all\s+)?(previous|prior|above|safety|system)",
-    r"bypass\s+(all\s+)?instructions",
+    r"overrides?\s+(all\s+)?(previous|prior|above|safety|system)",
+    r"bypasse?s?\s+(all\s+)?instructions",
     r"do\s+not\s+(follow|obey|respect)\s+(your|the|any|previous)\s+instructions",
     r"you\s+must\s+ignore",
     r"pretend\s+(that\s+)?you\s+(have\s+no|don'?t\s+have)",

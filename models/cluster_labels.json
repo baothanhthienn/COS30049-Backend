@@ -1,105 +1,105 @@
 {
   "0": {
-    "label": "social_engineering",
-    "count": 2216,
+    "label": "role_hijack",
+    "count": 454,
     "top_features": [
       [
-        "f01_override_keyword_count",
-        -0.3659
+        "f20_word_count",
+        1.8216
       ],
       [
         "f19_text_length",
-        -0.3653
-      ],
-      [
-        "f20_word_count",
-        -0.3633
+        1.8019
       ],
       [
         "f11_char_entropy",
-        -0.3427
+        1.3419
       ],
       [
-        "f18_imperative_opener",
-        -0.2789
+        "f02_role_swap_keyword_count",
+        1.1232
+      ],
+      [
+        "f17_exclamation_count",
+        1.0625
       ]
     ]
   },
   "1": {
-    "label": "role_hijack",
-    "count": 500,
+    "label": "social_engineering",
+    "count": 2385,
     "top_features": [
       [
-        "f20_word_count",
-        1.6143
+        "f18_imperative_opener",
+        -0.4014
+      ],
+      [
+        "f01_override_keyword_count",
+        -0.3491
       ],
       [
         "f19_text_length",
-        1.5989
+        -0.3256
+      ],
+      [
+        "f20_word_count",
+        -0.3244
       ],
       [
         "f11_char_entropy",
-        1.3853
-      ],
-      [
-        "f02_role_swap_keyword_count",
-        0.9792
-      ],
-      [
-        "f17_exclamation_count",
-        0.9127
+        -0.2383
       ]
     ]
   },
   "2": {
     "label": "instruction_override",
-    "count": 407,
+    "count": 532,
     "top_features": [
       [
-        "f01_override_keyword_count",
-        2.2323
+        "f18_imperative_opener",
+        1.8833
       ],
       [
-        "f18_imperative_opener",
-        1.7161
+        "f01_override_keyword_count",
+        1.7037
       ],
       [
         "f13_avg_word_length",
-        1.2961
+        1.0631
+      ],
+      [
+        "f03_data_exfil_keyword_count",
+        0.494
       ],
       [
         "f15_avg_sentence_length",
-        -0.5112
-      ],
-      [
-        "f20_word_count",
-        -0.4186
+        -0.4553
       ]
     ]
   },
   "3": {
     "label": "encoding_evasion",
-    "count": 123,
+    "count": 127,
     "top_features": [
       [
         "f10_encoding_anomaly_score",
-        5.0337
+        5.1484
       ],
       [
         "f05_has_base64_blob",
-        4.9961
-      ],
-      [
-        "f11_char_entropy",
-        1.4732
+        5.1098
       ],
       [
         "f19_text_length",
-        1.4411
+        1.4503
+      ],
+      [
+        "f11_char_entropy",
+        1.4079
       ],
       [
         "f20_word_count",
-        1.3678
+        1.3764
       ]
     ]
   }

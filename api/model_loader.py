@@ -41,9 +41,11 @@ VERDICT_THRESHOLD = 0.50   # P(injection) >= this → BLOCK
 # indicator is present.
 _NARRATIVE_FRAME_FEATURE_INDEX = FeatureVector.feature_names().index('f21_narrative_frame_count')
 _NARRATIVE_FRAME_BOOST_MIN_COUNT = 2.0   # require at least 2 distinct phrase matches
-_NARRATIVE_FRAME_BOOST_CEILING   = 0.40  # only boost if raw prob was already ambiguous-low
+_NARRATIVE_FRAME_BOOST_CEILING   = 0.49  # only boost if raw prob is below BLOCK; must stay < 0.50
 # original flat amount) while a 4+ match case gets meaningfully more.
-_NARRATIVE_FRAME_BOOST_PER_MATCH = 0.12  # multiplied by f21 count
+_NARRATIVE_FRAME_BOOST_PER_MATCH = 0.17  # multiplied by f21 count; retuned after SEAS retrain
+                                         # pushed short-text raw probs lower
+                                         # (f21=2 needs ~0.34 to clear 0.50)
 _NARRATIVE_FRAME_BOOST_MAX       = 0.40  # cap so this can't single-handedly force BLOCK on weak raw scores
 
 _METRICS_PATH = os.path.join(_MODELS_DIR, 'metrics.json')
