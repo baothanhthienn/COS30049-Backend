@@ -1,4 +1,4 @@
-# COS30049 Assignment 2 — Prompt Injection Guardrail
+# COS30049 Assignment 2: Prompt Injection Guardrail
 
 Backend ML pipeline that detects prompt-injection attacks in free-text input.
 Takes any user prompt, decides **ALLOW** or **BLOCK**, names the attack family,
@@ -76,7 +76,7 @@ Expected: `OK`
 
 ---
 
-## 3. Full pipeline — one-shot run
+## 3. Full pipeline: oneshot run
 
 If you only want to see everything build from scratch end-to-end, run these
 six commands in order. Total time: 3–5 minutes on a modern laptop.
@@ -98,7 +98,7 @@ want to use the already-trained models to serve predictions, skip to
 
 ---
 
-## 4. Step-by-step
+## 4. Step by step
 
 ### 4.1 Build the dataset
 
@@ -305,7 +305,7 @@ Expected response:
 }
 ```
 
-### 6.2 Example — benign request
+### 6.2 Example: benign request
 
 ```bash
 curl -X POST http://localhost:8000/predict \
