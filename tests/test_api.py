@@ -1,8 +1,3 @@
-"""
-Integration tests for the FastAPI endpoints.
-Run: python3 -m pytest tests/test_api.py -v
-Requires the models to be trained first (python3 src/train.py).
-"""
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 

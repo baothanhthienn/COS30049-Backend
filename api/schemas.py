@@ -1,5 +1,3 @@
-"""Pydantic request/response models for the FastAPI endpoints."""
-
 from typing import Optional
 from pydantic import BaseModel, Field
 
@@ -19,19 +17,11 @@ class SpanOut(BaseModel):
 class PredictResponse(BaseModel):
     verdict:        str            # "BLOCK" | "ALLOW"
     label:          int            # 1 = injection, 0 = benign
-    confidence:     float          # P(injection) from best model, after any rule boost
-    # None for benign traffic — K-means fitted on injection samples only, so
-    # clustering a ALLOW verdict would extrapolate outside the model's training domain.
+    confidence:     float         
     cluster_id:     Optional[int]
-    cluster_label:  Optional[str]  # human-readable attack family name
+    cluster_label:  Optional[str]  # human readable attack family name
     spans:          list[SpanOut]
     decoded_text:   str            # normalised text used for feature extraction
-    # True when the narrative-frame rule-based override nudged an ambiguous-low
-    # ML probability upward due to strong f21_narrative_frame_count signal.
-    # See model_loader._apply_narrative_frame_boost for rationale — f21 is too
-    # rare (<1% of training rows) for tree ensembles to weight heavily on its
-    # own, so this hybrid rule compensates for known game/rules-framing
-    # jailbreaks that the raw model underrates.
     rule_boost_applied: bool = False
 
 

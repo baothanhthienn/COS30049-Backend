@@ -1,7 +1,3 @@
-"""
-Unit tests for src/preprocessing.py
-Run: python3 -m pytest tests/test_preprocessing.py -v
-"""
 import base64
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))

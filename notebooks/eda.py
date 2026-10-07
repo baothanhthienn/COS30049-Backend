@@ -1,8 +1,3 @@
-"""
-EDA — Prompt Injection Guardrail
-Covers: label balance, text length, duplicates, class samples, concat strategy.
-Run: python3 notebooks/eda.py
-"""
 import pandas as pd
 import numpy as np
 import os, re
@@ -58,7 +53,7 @@ s_all = pd.concat([s_train, s_test], ignore_index=True)
 s_dupes = s_all.duplicated(subset="text", keep=False).sum()
 print(f"Secondary internal duplicates: {s_dupes}")
 
-# Cross-dataset overlap
+# Cross dataset overlap
 primary_texts   = set(p_all["text"].str.strip().str.lower())
 secondary_texts = set(s_all["text"].str.strip().str.lower())
 overlap = primary_texts & secondary_texts
@@ -100,7 +95,7 @@ print("\n" + "=" * 60)
 print("6. CONCAT STRATEGY — TRAINING SPLIT ONLY")
 print("=" * 60)
 
-# Remove cross-dataset duplicates from secondary (keep primary version)
+# Remove cross dataset duplicates from secondary (keep primary version)
 s_train_deduped = s_train[
     ~s_train["text"].str.strip().str.lower().isin(primary_texts)
 ].copy()

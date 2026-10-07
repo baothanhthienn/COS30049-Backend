@@ -1,5 +1,3 @@
-"""Tests for src/train.py — evaluate(), build_feature_matrix(), model pipeline."""
-
 import os
 import sys
 import numpy as np

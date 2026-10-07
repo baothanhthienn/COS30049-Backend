@@ -1,7 +1,3 @@
-"""
-Download and save raw datasets to data/raw/.
-Run once: python3 notebooks/00_download_datasets.py
-"""
 from datasets import load_dataset
 import pandas as pd
 import os

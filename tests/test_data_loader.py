@@ -1,5 +1,3 @@
-"""Tests for src/data_loader.py schema and merge correctness."""
-
 import os
 import sys
 import pandas as pd

@@ -1,11 +1,7 @@
 """
 K-means clustering on the injection class.
-
 Clusters the feature vectors of prompt injection samples to discover
-distinct attack pattern families. Results are saved to:
-  models/kmeans_model.pkl
-  models/cluster_labels.json  — {cluster_id: label_name, counts, centroid_features}
-
+distinct attack pattern families. 
 Run: python3 src/clustering.py
 """
 
@@ -89,7 +85,7 @@ def cluster():
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # Cluster only injections — benign samples have no meaningful attack-pattern
+    # Cluster only injections 
     # structure and would dilute the cluster boundaries.
     print("\nFinding optimal k via silhouette score...")
     best_k = find_optimal_k(X_scaled, k_range=(2, 8))
@@ -165,12 +161,8 @@ def save_cluster_analysis(
     feature_names: list,
     cluster_info: dict,
 ) -> None:
-    """
-    Produces data/cluster_analysis.json for the report.
-    Each cluster entry includes: label, count, feature mean deltas vs overall
-    mean (top 3 distinguishing features), 2-3 sentence description, and
-    2 representative example texts.
-    """
+    #Each cluster entry includes: label, count, feature mean deltas vs overal
+    
     overall_mean = X.mean(axis=0)
 
     # Canned descriptions keyed on cluster label prefix — written from the

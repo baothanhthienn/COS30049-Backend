@@ -1,7 +1,3 @@
-"""
-Unit tests for src/feature_extraction.py
-Run: python3 -m pytest tests/test_feature_extraction.py -v
-"""
 import sys, os, math
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 

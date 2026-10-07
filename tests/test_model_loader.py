@@ -1,5 +1,3 @@
-"""Tests for api/model_loader.py — predict(), ensure_loaded(), verdict threshold."""
-
 import os
 import sys
 import pytest

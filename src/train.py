@@ -1,19 +1,3 @@
-"""
-Model training pipeline — trains RF, LR, XGBoost, SVM on combined dataset.
-
-Steps:
-  1. Load data/processed/train.csv and test.csv (built by src/data_loader.py)
-  2. Extract 21 features via extract_features_batch()
-  3. Train Logistic Regression baseline (unit-taught, scaled)
-  4. Train Random Forest (unit-taught, primary baseline)
-  5. Train XGBoost (beyond unit — gradient boosted trees, native imbalance handling)
-  6. Train SVM with RBF kernel (beyond unit — effective on small dense feature spaces)
-  7. Evaluate all on identical held-out test set; pick best by ROC-AUC
-  8. Save all four models + scaler + metrics.json
-
-Run: python3 src/train.py
-"""
-
 import os
 import sys
 import json
@@ -127,8 +111,6 @@ def train():
     results['rf']['train_s'] = round(train_s, 2)
 
     # XGBoost (beyond unit)
-    # Gradient boosted trees; scale_pos_weight handles imbalance natively;
-    # outperforms RF on structured tabular features via additive correction
     print("\nTraining XGBoost...")
     neg, pos = np.bincount(y_train)
     spw = neg / pos  # inverse class frequency for imbalance correction
@@ -149,8 +131,6 @@ def train():
     results['xgb']['train_s'] = round(train_s, 2)
 
     # SVM with RBF kernel (beyond unit)
-    # Maximises margin in kernel-projected space; well-suited to 20-dim dense
-    # features; RBF captures non-linear decision boundaries; needs scaling
     print("\nTraining SVM (RBF kernel)...")
     t0 = time.time()
     # CalibratedClassifierCV wraps SVC for predict_proba without deprecation

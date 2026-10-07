@@ -1,16 +1,3 @@
-"""
-Outputs:
-  figures/01_class_distribution.png
-  figures/02_text_length_distribution.png
-  figures/03_feature_correlation_heatmap.png
-  figures/04_confusion_matrix.png
-  figures/05_roc_curves.png
-  figures/06_feature_importance.png
-  figures/07_cluster_scatter.png
-
-Run: python3 src/visualize.py
-"""
-
 import json
 import os
 import pickle

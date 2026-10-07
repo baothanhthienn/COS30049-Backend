@@ -1,52 +1,10 @@
 """
 Merge four dataset sources into one consistent CSV.
-
-Sources:
-  primary   — xTRam1/safe-guard-prompt-injection  (columns: text, label)
-  secondary — deepset/prompt-injections            (columns: text, label)
-  tertiary  — jackhhao/jailbreak-classification    (columns: prompt, type)
-  seas      — diaomuxi/SEAS, Role_Play category only (columns: prompt, category)
-
-Transformation applied to each source:
-  primary:   already {text, label}; add source='primary'
-  secondary: already {text, label}; add source='secondary'
-  tertiary:  rename prompt→text; map type (jailbreak→1, benign→0); add source='tertiary'
-  seas:      rename prompt→text; label=1 (all attack prompts); add source='seas_role_play'
-
---- Why SEAS needs special handling (read before changing SEAS_* constants) ---
-SEAS was tried once before at full scale (+3021 rows) and reverted: its
-Role_Play prompts are built from a handful of fixed wrapper templates
-("Mongo Tom", "HeLLM", "DAN", ...) with only the trailing harmful question
-swapped out. A plain random train_test_split let near-identical siblings of
-the same template land on both sides of the split, inflating test-set scores
-without the model actually generalising (confirmed via manual curl testing
-at the time — real-world false positives/negatives got WORSE even though the
-test-set number went up).
-
-This version re-adds SEAS at a much smaller, deduplicated scale:
-  1. Filter to category == 'Role_Play' only (~3,600-3,700 of the 16k rows,
-     based on a spot-check of the source file — the other 13 SEAS categories
-     aren't relevant to this project's role-swap/narrative-frame features).
-  2. Cluster near-duplicate templates via raw (non-IDF) character n-gram
-     overlap — see _cluster_near_duplicate_templates for why TF-IDF itself
-     is the WRONG tool here (it down-weights the shared boilerplate that
-     defines a template and up-weights the one part we don't want to split
-     on, the differing trailing question).
-  3. Cap variants per template (SEAS_MAX_PER_TEMPLATE) and round-robin
-     across templates up to SEAS_TARGET_ROWS, so the final set favours
-     template DIVERSITY rather than whichever template happens to have the
-     most raw rows.
-  4. Split SEAS rows with a GROUP-aware split keyed on template_id, so every
-     variant of a template lands entirely in train or entirely in test —
-     this is the actual leakage fix; steps 1-3 just make the residual risk
-     smaller even before this guarantee.
-
 Output: data/processed/combined_dataset.csv  (columns: text, label, source)
         data/raw/tertiary_train.csv
         data/raw/tertiary_test.csv
         data/raw/quaternary_train.csv   (SEAS, post-dedup/capping, post-split)
         data/raw/quaternary_test.csv
-
 Run: python3 src/data_loader.py
 """
 
@@ -62,18 +20,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 RAW_DIR       = os.path.join(os.path.dirname(__file__), '..', 'data', 'raw')
 PROCESSED_DIR = os.path.join(os.path.dirname(__file__), '..', 'data', 'processed')
 
-# --- SEAS Role_Play selection knobs ---
-SEAS_TARGET_ROWS          = 400   # final row count after dedup/capping, before split
-SEAS_MAX_PER_TEMPLATE     = 5     # cap variants of any one wrapper template
-SEAS_SIMILARITY_THRESHOLD = 0.40  # cosine sim on raw char 5-gram overlap; validated
-                                   # against a sample of the real data — correctly
-                                   # separates 3 known template families (Mongo Tom,
-                                   # HeLLM, DAN) from genuinely distinct one-off
-                                   # Role_Play prompts (lawyer/hacker/psychotherapist
-                                   # scenarios etc). Re-validate if this constant is
-                                   # changed — see test at bottom of this docstring's
-                                   # accompanying conversation, not reproduced here.
-
+SEAS_TARGET_ROWS          = 400   
+SEAS_MAX_PER_TEMPLATE     = 5     
+SEAS_SIMILARITY_THRESHOLD = 0.40  
 
 def _load_primary() -> pd.DataFrame:
     # xTRam1 already split into raw/primary_*.csv
@@ -107,25 +56,6 @@ def _load_tertiary() -> pd.DataFrame:
 
 
 def _cluster_near_duplicate_templates(texts: list, threshold: float = SEAS_SIMILARITY_THRESHOLD) -> list:
-    """
-    Groups near-duplicate SEAS Role_Play prompts (same wrapper template, only
-    the trailing harmful question differs) into cluster ids.
-
-    IMPORTANT: uses raw binary character 5-gram overlap (CountVectorizer with
-    binary=True), NOT TF-IDF. TF-IDF was tried first and fails for this task
-    specifically: the long shared wrapper text (e.g. the ~700-character Mongo
-    Tom preamble) is COMMON across many rows, so IDF down-weights it — while
-    the short trailing question, which is unique per row, gets weighted
-    heavily. That's the exact opposite of what's needed: it made every
-    Mongo Tom variant look nearly as different from every other Mongo Tom
-    variant as from a completely unrelated prompt. Raw n-gram overlap doesn't
-    have this problem — the shared wrapper contributes its full similarity
-    weight regardless of how often it recurs in the corpus.
-
-    Greedy single-pass clustering (compare each new text only to existing
-    cluster representatives, not full pairwise) is O(n * k) rather than
-    O(n^2), which matters at ~3,600+ raw Role_Play rows.
-    """
     vectorizer = CountVectorizer(analyzer='char_wb', ngram_range=(5, 5), binary=True, min_df=1)
     X = vectorizer.fit_transform(texts).astype(float)
 
@@ -159,10 +89,6 @@ def _select_role_play_subset(
     similarity_threshold: float = SEAS_SIMILARITY_THRESHOLD,
     random_state: int = 42,
 ) -> pd.DataFrame:
-    """
-    Dedup + cap + round-robin select down to target_rows, keeping a
-    'template_id' column so build_combined can do a group-aware split.
-    """
     df = df.reset_index(drop=True).copy()
     cluster_ids = _cluster_near_duplicate_templates(df['text'].tolist(), similarity_threshold)
     df['template_id'] = cluster_ids
@@ -172,19 +98,12 @@ def _select_role_play_subset(
     print(f"  SEAS Role_Play: {len(df)} raw rows collapse to {n_templates} distinct "
           f"templates (threshold={similarity_threshold}, largest template={biggest} rows)")
 
-    # Cap variants per template.
-    # NOTE: this used to be `df.groupby('template_id').apply(lambda g: g.sample(...))`,
-    # but pandas (2.2+, confirmed on 3.0) silently DROPS the grouping column
-    # from the result of .apply() by default — the resulting frame had no
-    # 'template_id' column at all, which crashed the next line with a
-    # KeyError. Shuffling once up front and using .groupby().head() instead
-    # avoids .apply() entirely and reliably keeps every column.
     shuffled = df.sample(frac=1, random_state=random_state).reset_index(drop=True)
     capped = shuffled.groupby('template_id', as_index=False, group_keys=False).head(max_per_template)
     capped = capped.reset_index(drop=True)
     print(f"  After capping at {max_per_template} variants/template: {len(capped)} rows")
 
-    # Round-robin across templates up to target_rows, so the selection favours
+    # Round robin across templates up to target_rows, so the selection favours
     # template diversity over just taking whichever templates sort first.
     if len(capped) > target_rows:
         rng = np.random.RandomState(random_state)
@@ -219,14 +138,7 @@ def _load_seas(
     similarity_threshold: float = SEAS_SIMILARITY_THRESHOLD,
     random_state: int = 42,
 ) -> pd.DataFrame:
-    """
-    Fourth source, reverted per the earlier model_loader.py comment
-    ("SEAS Role_Play, +3021 rows") but at a much smaller, deduplicated scale.
-    See the module docstring for the full rationale.
-
-    Downloads only SEAS-Train.jsonl (not SEAS-Test.jsonl — this project
-    builds its own train/test split downstream, same as the other sources).
-    """
+    
     from huggingface_hub import hf_hub_download
 
     print("Downloading SEAS-Train.jsonl (diaomuxi/SEAS)...")
@@ -286,7 +198,7 @@ def build_combined(
         tertiary_train.to_csv(os.path.join(RAW_DIR, 'tertiary_train.csv'), index=False)
         tertiary_test.to_csv(os.path.join(RAW_DIR, 'tertiary_test.csv'),  index=False)
 
-    # Non-SEAS split: unchanged from before — ordinary stratified random split.
+    # Non SEAS split: unchanged from before, ordinary stratified random split.
     non_seas_train, non_seas_test = train_test_split(
         non_seas, test_size=test_size, stratify=non_seas['label'], random_state=random_state
     )
@@ -296,9 +208,8 @@ def build_combined(
         seas = _load_seas(random_state=random_state)
         print(f"  {len(seas)} rows  |  label dist: {seas['label'].value_counts().to_dict()}")
 
-        # GROUP-aware split keyed on template_id: every variant of a template
-        # lands entirely in train or entirely in test. This is the actual
-        # leakage fix, not just the smaller row count from _select_role_play_subset.
+        # GROUP aware split keyed on template_id: every variant of a template
+        # lands entirely in train or entirely in test. 
         gss = GroupShuffleSplit(n_splits=1, test_size=test_size, random_state=random_state)
         seas_train_idx, seas_test_idx = next(gss.split(seas, groups=seas['template_id']))
         seas_train = seas.iloc[seas_train_idx]
@@ -313,13 +224,6 @@ def build_combined(
         assert len(overlap) == 0, "SEAS template leaked across train/test — group split failed"
 
         if save_raw:
-            # Fourth source, saved the same way primary/secondary/tertiary
-            # are: as its own raw/*_train.csv + raw/*_test.csv pair. Named
-            # 'quaternary' to continue the primary/secondary/tertiary
-            # ordinal naming already used in this file. template_id is
-            # dropped here too — it's split-time bookkeeping only, kept out
-            # of every saved CSV so schemas stay consistent (text, label,
-            # source) across all four raw sources.
             seas_train.drop(columns=['template_id'], errors='ignore').to_csv(
                 os.path.join(RAW_DIR, 'quaternary_train.csv'), index=False)
             seas_test.drop(columns=['template_id'], errors='ignore').to_csv(

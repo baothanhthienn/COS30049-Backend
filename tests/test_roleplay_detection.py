@@ -1,11 +1,3 @@
-"""
-Run: python3 -m pytest tests/test_roleplay_detection.py -v
-
-Detection baseline (measured 2026-09-27):
-  Injection recall: 9/15 (60%)
-  FP rate:          0/5  (0%)
-  Known FNs:        6 — marked xfail below; remove xfail when fixed.
-"""
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
@@ -15,7 +7,7 @@ from api.main import app
 
 client = TestClient(app)
 
-BLOCK_THRESHOLD = 0.5  # confidence >= this → verdict BLOCK
+BLOCK_THRESHOLD = 0.5 
 
 # Helpers
 def predict(text: str) -> dict:
