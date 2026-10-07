@@ -9,7 +9,7 @@ held-out test set.
 - **Group:** Session 04 Group 6
 - **Students:** Nguyen Gia Bao Pham, Huu Cuong Nguyen, Ethan Nguyen
 - **Stack:** Python 3.11, scikit-learn 1.9, XGBoost 3.4, FastAPI, Pydantic
-- **Tests:** 165 passing, 2 documented known-limitation xfails
+- **Tests:** 165 passing, 2 documented known, limitation xfails
 
 ---
 
