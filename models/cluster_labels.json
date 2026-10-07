@@ -1,105 +1,105 @@
 {
   "0": {
-    "label": "role_hijack",
-    "count": 547,
+    "label": "social_engineering",
+    "count": 2484,
     "top_features": [
       [
-        "f20_word_count",
-        1.4944
+        "f01_override_keyword_count",
+        -0.3478
       ],
       [
         "f19_text_length",
-        1.4802
+        -0.3336
+      ],
+      [
+        "f20_word_count",
+        -0.3322
+      ],
+      [
+        "f18_imperative_opener",
+        -0.2944
       ],
       [
         "f11_char_entropy",
-        1.3392
-      ],
-      [
-        "f02_role_swap_keyword_count",
-        0.8889
-      ],
-      [
-        "f12_uppercase_ratio",
-        0.8303
+        -0.2632
       ]
     ]
   },
   "1": {
-    "label": "data_exfiltration",
-    "count": 2519,
+    "label": "encoding_evasion",
+    "count": 127,
     "top_features": [
       [
-        "f19_text_length",
-        -0.3922
+        "f10_encoding_anomaly_score",
+        5.1484
       ],
       [
-        "f20_word_count",
-        -0.3917
+        "f05_has_base64_blob",
+        5.1098
+      ],
+      [
+        "f19_text_length",
+        1.4515
       ],
       [
         "f11_char_entropy",
-        -0.3625
+        1.4135
       ],
       [
-        "f17_exclamation_count",
-        -0.2232
-      ],
-      [
-        "f02_role_swap_keyword_count",
-        -0.2182
+        "f20_word_count",
+        1.3764
       ]
     ]
   },
   "2": {
-    "label": "encoding_evasion",
-    "count": 121,
+    "label": "role_hijack",
+    "count": 463,
     "top_features": [
       [
-        "f05_has_base64_blob",
-        5.0346
-      ],
-      [
-        "f10_encoding_anomaly_score",
-        4.9936
-      ],
-      [
-        "f11_char_entropy",
-        1.4516
+        "f20_word_count",
+        1.7987
       ],
       [
         "f19_text_length",
-        1.4462
+        1.7799
       ],
       [
-        "f20_word_count",
-        1.3717
+        "f11_char_entropy",
+        1.3585
+      ],
+      [
+        "f02_role_swap_keyword_count",
+        1.0956
+      ],
+      [
+        "f17_exclamation_count",
+        1.0373
       ]
     ]
   },
   "3": {
-    "label": "encoding_evasion_3",
-    "count": 1,
+    "label": "instruction_override",
+    "count": 424,
     "top_features": [
       [
-        "f09_non_ascii_ratio",
-        51.6674
+        "f01_override_keyword_count",
+        2.231
       ],
       [
-        "f06_unicode_lookalike_count",
-        46.241
+        "f18_imperative_opener",
+        1.8343
       ],
       [
-        "f10_encoding_anomaly_score",
-        5.2947
+        "f13_avg_word_length",
+        1.3391
       ],
       [
-        "f12_uppercase_ratio",
-        2.845
+        "f15_avg_sentence_length",
+        -0.5575
       ],
       [
-        "f11_char_entropy",
-        1.646
+        "f20_word_count",
+        -0.4304
       ]
     ]
   }

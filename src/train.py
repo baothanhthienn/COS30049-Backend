@@ -149,7 +149,6 @@ def train():
     results['xgb']['train_s'] = round(train_s, 2)
 
     # SVM with RBF kernel (beyond unit)
-    # Maximises margin in kernel-projected space; well-suited to 20-dim dense
     # features; RBF captures non-linear decision boundaries; needs scaling
     print("\nTraining SVM (RBF kernel)...")
     t0 = time.time()
