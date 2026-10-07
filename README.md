@@ -17,8 +17,8 @@ held-out test set.
 
 1. [Prerequisites](#1-prerequisites)
 2. [Environment setup (conda)](#2-environment-setup-conda)
-3. [Full pipeline — one-shot run](#3-full-pipeline--one-shot-run)
-4. [Step-by-step](#4-step-by-step)
+3. [Full pipeline: oneshot run](#3-full-pipeline--one-shot-run)
+4. [Step by step](#4-step-by-step)
    - [4.1 Build the dataset](#41-build-the-dataset)
    - [4.2 Train the models](#42-train-the-models)
    - [4.3 Cluster the attacks](#43-cluster-the-attacks)
