@@ -74,11 +74,6 @@ python3 -c "import sklearn, xgboost, fastapi, pandas; print('OK')"
 
 Expected: `OK`
 
-> **📸 SCREENSHOT 1 — Environment ready**
-> Paste a terminal screenshot showing `conda activate cos30049` succeeded
-> and the verification `python3 -c "..."` printed `OK`. Proves the setup
-> steps actually work.
-
 ---
 
 ## 3. Full pipeline — one-shot run
@@ -135,13 +130,8 @@ python3 src/data_loader.py
 The script is **idempotent** — re-running produces the same CSVs for the same
 random seed (`random_state=42`).
 
-> **📸 SCREENSHOT 2 — Dataset build output**
-> Capture the terminal output of `python3 src/data_loader.py`. You want the
-> block showing each source loading, the SEAS pipeline lines (`16039 total
-> SEAS rows`, `3742 Role_Play rows`, template cluster collapse, `310 train /
-> 73 test`, template overlap `0 (should be 0)`), and the final
-> `Combined: 12385 rows total` summary. This proves the whole dataset
-> transformation ran correctly.
+> **Build the dataset**
+![alt text](image.png)
 
 ---
 
@@ -178,14 +168,8 @@ python3 src/train.py
 | SVM | 0.9495 | 0.9238 | 0.8963 | 0.8465 | 719.3 |
 | LR | 0.8802 | 0.8280 | 0.8076 | 0.7041 | 0.3 |
 
-> **📸 SCREENSHOT 3 — Training output**
-> Capture the terminal output of `python3 src/train.py` showing each model's
-> training time and the final comparison table printed to stdout. The
-> `[best model: rf]` line at the end is the most important evidence.
-
-The API picks up the winner automatically: `api/model_loader.py` reads
-`metrics.json → "best_model"` at startup. If a future retrain promotes XGBoost
-to best, no code changes are needed to serve from it.
+> **Train the models**
+![alt text](image-1.png)
 
 ---
 
@@ -254,12 +238,8 @@ python3 src/visualize.py
 - `figures/06_feature_importance.png`
 - `figures/07_cluster_scatter.png`
 
-> **📸 SCREENSHOT 4 — Figure 05 (ROC curves)**
-> Not a terminal capture: open `figures/05_roc_curves.png` and paste it
-> directly. Shows all four models on one axis — RF and XGBoost nearly
-> indistinguishable, SVM below, LR well below. This is the most persuasive
-> single image for the model-selection argument.
-
+> **ROC Curves**
+figures/05_roc_curves.png
 ---
 
 ## 5. Run the API
@@ -290,11 +270,7 @@ Three endpoints are exposed:
 Interactive OpenAPI docs are at `http://localhost:8000/docs` once the server
 is running.
 
-> **📸 SCREENSHOT 5 — API startup**
-> Capture the uvicorn startup output showing `Application startup complete.`
-> Add a second line / tab showing `curl http://localhost:8000/health`
-> returning `{"status":"ok","model":"RF","version":"1.0.0"}` so the marker
-> sees both server-up and health-check succeeded.
+![alt text](image-2.png)
 
 ---
 
@@ -383,16 +359,10 @@ before the model saw the text.
 - `text`: 1 to 10,000 characters (Pydantic rejects outside this range with HTTP 422)
 - Request body must be `application/json`
 
-> **📸 SCREENSHOT 6 — Prediction demo (BLOCK + ALLOW)**
-> Capture a terminal with two `curl` calls side by side (or stacked):
-> one for the clear injection (6.1), one for the benign request (6.2),
-> both showing the full JSON response. This is the single most direct
-> demonstration that the model and API work end-to-end.
+> **Prediction Demo**
+![alt text](image-3.png)
 
-> **📸 SCREENSHOT 7 — Preprocessing demo (optional, strong extra credit)**
-> The obfuscated-input example (6.3) with the `decoded_text` field
-> highlighted. Shows the preprocessing pipeline unwrapping leet-speak
-> before the model classifies.
+![alt text](image-4.png)
 
 ---
 
@@ -416,11 +386,8 @@ reranker):
 Both markers use `strict=True`, so if a future retrain closes the gap pytest
 will fail loudly and signal that the xfail should be removed.
 
-> **📸 SCREENSHOT 8 — Test suite passing**
-> Capture `pytest tests/ -v --tb=no` output showing the final line
-> `165 passed, 2 xfailed`. The `-v` flag makes each test name visible,
-> which proves coverage breadth; the two xfails are expected and
-> explicitly documented.
+> **Test suite passing**
+![alt text](image-5.png)
 
 ---
 
