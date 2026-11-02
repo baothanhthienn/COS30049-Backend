@@ -1,116 +1,86 @@
-"""
-Endpoints:
-  POST /predict   — classify a single text
-  GET  /stats     — running session statistics
-  GET  /health    — liveness check
-"""
-
 import logging
-import threading
+import time
 from collections import defaultdict
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from api import model_loader
+from api.core.config import settings
+from api.core.errors import (
+    http_exception_handler,
+    unhandled_exception_handler,
+    validation_exception_handler,
+)
+from api.routers import classify, health, sessions
 
 _logger = logging.getLogger(__name__)
 
-from api.schemas import (
-    PredictRequest, PredictResponse, StatsResponse,
-    HealthResponse, SpanOut,
-)
-from api import model_loader
-
-# Lock guards _stats across concurrent requests; FastAPI runs handlers in a
-# thread pool, so unsynchronised increments would produce silent count drift.
-_stats_lock = threading.Lock()
-_stats = {
-    "total_requests": 0,
-    "total_blocked":  0,
-    "total_allowed":  0,
-    "cluster_counts": defaultdict(int),
-}
+# In-memory per-IP rate limiter (window = 60s)
+_rate_buckets: dict[str, list[float]] = defaultdict(list)
 
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
-    # Lifespan loads the model once at startup; avoids a cold-load penalty on
-    # the first request and surfaces missing-pkl errors before traffic arrives.
     model_loader.ensure_loaded()
     yield
 
 
 app = FastAPI(
     title="Prompt Injection Guardrail",
-    version="1.0.0",
+    version=settings.model_version,
     description="ML-powered prompt injection detection API.",
     lifespan=lifespan,
 )
 
+#CORS lockdown — origins from env, restrict methods/headers to API surface
+_origins = [o.strip() for o in settings.cors_origin.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # restrict in production
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=_origins,
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 
-@app.post("/predict", response_model=PredictResponse, responses={500: {"description": "Model not loaded — run `python3 src/train.py` first"}})
-def predict(req: PredictRequest):
-    try:
-        result = model_loader.predict(req.text)
-    except Exception as exc:
-        _logger.exception("predict failed")
-        msg = str(exc)
-        # Surface missing-pkl errors directly so the caller knows to run train.py.
-        detail = msg if ("not found" in msg.lower() or "run `python" in msg.lower()) \
-            else "Prediction service unavailable."
-        raise HTTPException(status_code=500, detail=detail)
-
-    with _stats_lock:
-        _stats["total_requests"] += 1
-        if result["verdict"] == "BLOCK":
-            _stats["total_blocked"] += 1
-            if result["cluster_label"]:
-                _stats["cluster_counts"][result["cluster_label"]] += 1
-        else:
-            _stats["total_allowed"] += 1
-
-    return PredictResponse(
-        verdict=result["verdict"],
-        label=result["label"],
-        confidence=result["confidence"],
-        cluster_id=result["cluster_id"],
-        cluster_label=result["cluster_label"],
-        spans=[SpanOut(**s) for s in result["spans"]],
-        decoded_text=result["decoded_text"],
-        rule_boost_applied=result["rule_boost_applied"],
-    )
+# Max body size middleware
+@app.middleware("http")
+async def limit_body_size(request: Request, call_next):
+    content_length = request.headers.get("content-length")
+    if content_length and int(content_length) > settings.max_body_bytes:
+        return JSONResponse(
+            status_code=413,
+            content={"error": {"code": "PAYLOAD_TOO_LARGE", "message": f"Body exceeds {settings.max_body_bytes} bytes", "reference_id": ""}},
+        )
+    return await call_next(request)
 
 
-@app.get("/stats", response_model=StatsResponse)
-def stats():
-    with _stats_lock:
-        total = _stats["total_requests"]
-        blocked = _stats["total_blocked"]
-        allowed = _stats["total_allowed"]
-        clusters = dict(_stats["cluster_counts"])
-    block_rate = blocked / total if total > 0 else 0.0
-    return StatsResponse(
-        total_requests=total,
-        total_blocked=blocked,
-        total_allowed=allowed,
-        block_rate=round(block_rate, 4),
-        cluster_counts=clusters,
-    )
+# Rate limiting on inference endpoint (OWASP-A06)
+@app.middleware("http")
+async def rate_limit(request: Request, call_next):
+    if request.method == "POST" and request.url.path == "/api/classify":
+        ip = request.client.host if request.client else "unknown"
+        now = time.monotonic()
+        window = _rate_buckets[ip] = [t for t in _rate_buckets[ip] if now - t < 60]
+        if len(window) >= settings.rate_limit_per_minute:
+            return JSONResponse(
+                status_code=429,
+                content={"error": {"code": "RATE_LIMITED", "message": "Too many requests. Retry after 60 seconds.", "reference_id": ""}},
+            )
+        _rate_buckets[ip].append(now)
+    return await call_next(request)
 
 
-@app.get("/health", response_model=HealthResponse)
-def health():
-    # Reflect the actual best model so the health check stays accurate after retraining.
-    model_name = model_loader.get_best_model_name()
-    return HealthResponse(
-        status="ok",
-        model=model_name,
-        version="1.0.0",
-    )
+# 2.2.3 Consistent error envelope
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, unhandled_exception_handler)
+
+# 2.3 Routers
+app.include_router(classify.router)
+app.include_router(sessions.router)
+app.include_router(health.router)
