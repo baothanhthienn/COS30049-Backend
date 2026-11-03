@@ -10,7 +10,11 @@ from api.core.config import settings
 
 _logger = logging.getLogger(__name__)
 
-_ALLOWED_ORIGINS = [o.strip() for o in settings.cors_origin.split(",") if o.strip()]
+_ALLOWED_ORIGINS = {
+    "https://cos-30049-frontend.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:3000",
+} | {o.strip() for o in settings.cors_origin.split(",") if o.strip()}
 
 
 def _envelope(code: str, message: str) -> dict:
