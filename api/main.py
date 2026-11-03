@@ -58,9 +58,13 @@ if settings.is_hosted:
         _logger.warning("ProxyHeadersMiddleware not available — client IPs may show as proxy IP")
 
 # CORS lockdown — origins from env only, no wildcard
+# Re-read at app creation time (not just import time) so Railway env vars are picked up
+_cors_origins = [o.strip() for o in settings.cors_origin.split(",") if o.strip()]
+_logger.info("CORS origins: %s", _cors_origins)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_origins,
+    allow_origins=_cors_origins,
+    allow_credentials=True,
     allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization", "X-API-Key"],
 )
