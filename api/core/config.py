@@ -1,3 +1,5 @@
+import os
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -11,7 +13,20 @@ class Settings(BaseSettings):
     api_key: str = ""  
     rate_limit_per_minute: int = 60
     inference_concurrency: int = 10
-    max_body_bytes: int = 1_048_576  # 1 MB
+    max_body_bytes: int = 1_048_576  
+
+    @property
+    def is_hosted(self) -> bool:
+        # Railway auto-injects
+        return any(
+            os.getenv(v)
+            for v in ("RAILWAY_ENVIRONMENT_NAME", "RAILWAY_ENVIRONMENT", "RAILWAY_PUBLIC_DOMAIN", "RAILWAY_SERVICE_NAME")
+        )
+
+    @property
+    def database_ssl(self) -> bool:
+        # Railway PostgreSQL requires SSL; disabled for local dev
+        return self.is_hosted
 
 
 settings = Settings()

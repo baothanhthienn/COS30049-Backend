@@ -16,18 +16,27 @@ from api.core.errors import (
     unhandled_exception_handler,
     validation_exception_handler,
 )
+from api.db.session import dispose_engine
 from api.routers import classify, health, sessions
 
 _logger = logging.getLogger(__name__)
 
-# In-memory per-IP rate limiter (window = 60s)
 _rate_buckets: dict[str, list[float]] = defaultdict(list)
+
+_origins = [o.strip() for o in settings.cors_origin.split(",") if o.strip()]
 
 
 @asynccontextmanager
-async def lifespan(application: FastAPI):
+async def lifespan(_: FastAPI):
+    # Log origins so cross-origin bugs are immediately visible in Railway logs
+    _logger.info("Allowed origins: %s", ", ".join(_origins))
+    _logger.info("Hosted: %s | SSL: %s", settings.is_hosted, settings.database_ssl)
     model_loader.ensure_loaded()
-    yield
+    try:
+        yield
+    finally:
+        # SIGTERM handler equivalent — drain DB pool before Railway kills the process
+        await dispose_engine()
 
 
 app = FastAPI(
@@ -37,17 +46,27 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-#CORS lockdown — origins from env, restrict methods/headers to API surface
-_origins = [o.strip() for o in settings.cors_origin.split(",") if o.strip()]
+# Trust the forwarded IP from Railway's load balancer so rate limits see the real client IP
+if settings.is_hosted:
+    from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
+    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
+
+# CORS lockdown — origins from env only, no wildcard
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_origins,
     allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization"],
+    allow_headers=["Content-Type", "Authorization", "X-API-Key"],
 )
 
 
-# Max body size middleware
+@app.middleware("http")
+async def remove_server_header(request: Request, call_next):
+    response = await call_next(request)
+    response.headers.pop("server", None)
+    return response
+
+
 @app.middleware("http")
 async def limit_body_size(request: Request, call_next):
     content_length = request.headers.get("content-length")
@@ -59,7 +78,6 @@ async def limit_body_size(request: Request, call_next):
     return await call_next(request)
 
 
-# Rate limiting on inference endpoint (OWASP-A06)
 @app.middleware("http")
 async def rate_limit(request: Request, call_next):
     if request.method == "POST" and request.url.path == "/api/classify":
@@ -75,12 +93,10 @@ async def rate_limit(request: Request, call_next):
     return await call_next(request)
 
 
-# 2.2.3 Consistent error envelope
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, unhandled_exception_handler)
 
-# 2.3 Routers
 app.include_router(classify.router)
 app.include_router(sessions.router)
 app.include_router(health.router)

@@ -1,9 +1,27 @@
+import ssl
+
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
 from api.core.config import settings
 
-engine = create_async_engine(settings.database_url, pool_pre_ping=True)
+
+def _build_engine():
+    connect_args = {}
+    if settings.database_ssl:
+        # Railway PostgreSQL requires SSL; create a permissive context (cert is valid)
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        connect_args["ssl"] = ctx
+    return create_async_engine(
+        settings.database_url,
+        pool_pre_ping=True,
+        connect_args=connect_args,
+    )
+
+
+engine = _build_engine()
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 
@@ -14,3 +32,8 @@ class Base(DeclarativeBase):
 async def get_db():
     async with AsyncSessionLocal() as session:
         yield session
+
+
+async def dispose_engine():
+    """Call during lifespan shutdown so Railway SIGTERM drains the connection pool cleanly."""
+    await engine.dispose()
