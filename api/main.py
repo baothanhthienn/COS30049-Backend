@@ -16,7 +16,9 @@ from api.core.errors import (
     unhandled_exception_handler,
     validation_exception_handler,
 )
-from api.db.session import dispose_engine
+from api.db.session import dispose_engine, engine
+from api.db import models as _models  # noqa: F401 — registers tables on Base.metadata
+from api.db.session import Base
 from api.routers import classify, health, sessions
 
 _logger = logging.getLogger(__name__)
@@ -40,6 +42,12 @@ async def lifespan(_: FastAPI):
         _logger.info("Model loaded: %s", model_loader.get_best_model_name())
     except Exception as exc:
         _logger.error("Model load failed (classify will be unavailable): %s", exc)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        _logger.info("DB tables verified/created")
+    except Exception as exc:
+        _logger.error("DB table creation failed (will rely on Alembic): %s", exc)
     try:
         yield
     finally:
