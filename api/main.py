@@ -69,7 +69,8 @@ app.add_middleware(
 @app.middleware("http")
 async def remove_server_header(request: Request, call_next):
     response = await call_next(request)
-    response.headers.pop("server", None)
+    if "server" in response.headers:
+        del response.headers["server"]
     return response
 
 
