@@ -1,9 +1,3 @@
-"""create classifications table
-
-Revision ID: 0001
-Revises:
-Create Date: 2026-11-03
-"""
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
@@ -19,11 +13,7 @@ def upgrade() -> None:
         "classifications",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
         sa.Column("session_id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column(
-            "created_at",
-            sa.DateTime(timezone=True),
-            nullable=False,
-        ),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("text", sa.Text, nullable=False),
         sa.Column("verdict", sa.String(8), nullable=False),
         sa.Column("confidence", sa.Float, nullable=False),

@@ -1,5 +1,3 @@
-import ssl
-
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
@@ -14,13 +12,9 @@ def _normalise_url(url: str) -> str:
 
 
 def _build_engine():
-    connect_args = {}
+    connect_args: dict = {}
     if settings.database_ssl:
-        # Railway PostgreSQL requires SSL; permissive context (Railway cert is valid)
-        ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-        connect_args["ssl"] = ctx
+        connect_args["ssl"] = "require"
     return create_async_engine(
         _normalise_url(settings.database_url),
         pool_pre_ping=True,
