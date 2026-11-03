@@ -1,7 +1,9 @@
+import asyncio
 import json
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,6 +14,16 @@ from api.db.session import get_db
 from api.ml import pipeline
 
 router = APIRouter(dependencies=[Depends(require_api_key)])
+
+_executor = ThreadPoolExecutor(max_workers=settings.inference_concurrency)
+_semaphore: asyncio.Semaphore | None = None
+
+
+def _get_semaphore() -> asyncio.Semaphore:
+    global _semaphore
+    if _semaphore is None:
+        _semaphore = asyncio.Semaphore(settings.inference_concurrency)
+    return _semaphore
 
 
 class ClassifyRequest(BaseModel):
@@ -54,7 +66,15 @@ class ClassifyResponse(BaseModel):
     },
 )
 async def classify(req: ClassifyRequest, db: AsyncSession = Depends(get_db)):
-    result = pipeline.run(req.text)
+    sem = _get_semaphore()
+
+    # Reject immediately when all inference slots are taken (DoS defence)
+    if sem._value <= 0:
+        raise HTTPException(status_code=503, detail="Server busy — too many concurrent requests")
+
+    async with sem:
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(_executor, pipeline.run, req.text)
 
     record = Classification(
         session_id=req.session_id,

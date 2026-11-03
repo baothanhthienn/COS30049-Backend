@@ -52,16 +52,19 @@ async def history(
     session_id: uuid.UUID,
     limit: int = 20,
     offset: int = 0,
+    q: str | None = None,
     db: AsyncSession = Depends(get_db),
 ):
-    total_q = await db.execute(
-        select(func.count()).where(Classification.session_id == session_id)
-    )
+    base_filter = Classification.session_id == session_id
+    if q:
+        base_filter = base_filter & Classification.text.ilike(f"%{q}%")
+
+    total_q = await db.execute(select(func.count()).where(base_filter))
     total = total_q.scalar_one()
 
     rows_q = await db.execute(
         select(Classification)
-        .where(Classification.session_id == session_id)
+        .where(base_filter)
         .order_by(Classification.created_at.desc())
         .limit(limit)
         .offset(offset)
