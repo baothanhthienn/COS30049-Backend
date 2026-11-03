@@ -28,14 +28,17 @@ _origins = [o.strip() for o in settings.cors_origin.split(",") if o.strip()]
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    # Log origins so cross-origin bugs are immediately visible in Railway logs
     _logger.info("Allowed origins: %s", ", ".join(_origins))
     _logger.info("Hosted: %s | SSL: %s", settings.is_hosted, settings.database_ssl)
-    model_loader.ensure_loaded()
+    try:
+        model_loader.ensure_loaded()
+        _logger.info("Model loaded: %s", model_loader.get_best_model_name())
+    except Exception as exc:
+        # Log clearly but don't crash — health endpoint will report model status
+        _logger.error("Model load failed (classify will be unavailable): %s", exc)
     try:
         yield
     finally:
-        # SIGTERM handler equivalent — drain DB pool before Railway kills the process
         await dispose_engine()
 
 
@@ -46,10 +49,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Trust the forwarded IP from Railway's load balancer so rate limits see the real client IP
+# ProxyHeadersMiddleware — real client IP behind Railway's load balancer
 if settings.is_hosted:
-    from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
-    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
+    try:
+        from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
+        app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
+    except ImportError:
+        _logger.warning("ProxyHeadersMiddleware not available — client IPs may show as proxy IP")
 
 # CORS lockdown — origins from env only, no wildcard
 app.add_middleware(

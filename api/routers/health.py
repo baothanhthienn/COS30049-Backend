@@ -1,12 +1,9 @@
 import logging
 
-from fastapi import APIRouter, Depends
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter
 
 from api import model_loader
 from api.core.config import settings
-from api.db.session import get_db
 
 router = APIRouter()
 _logger = logging.getLogger(__name__)
@@ -15,28 +12,21 @@ _logger = logging.getLogger(__name__)
 @router.get(
     "/api/health",
     summary="Liveness check",
-    description="Returns service status, DB connectivity, model name, and version. No auth required.",
+    description="Returns service status, model name, and version. No auth required. Always returns 200.",
 )
-async def health(db: AsyncSession = Depends(get_db)):
-    db_status = "unknown"
-    db_name = None
-
+def health():
     try:
-        result = await db.execute(
-            text("SELECT current_database() AS db_name, version() AS pg_version")
-        )
-        row = result.mappings().one()
-        db_status = "connected"
-        db_name = row["db_name"]
+        model_name = model_loader.get_best_model_name()
+        model_status = "loaded"
     except Exception as exc:
-        _logger.warning("Health DB check failed: %s", exc)
-        db_status = "unreachable"
+        _logger.warning("Model status check failed: %s", exc)
+        model_name = "unknown"
+        model_status = "unavailable"
 
     return {
         "status": "ok",
-        "database": db_status,
-        "database_name": db_name,
-        "model": model_loader.get_best_model_name(),
+        "model": model_name,
+        "model_status": model_status,
         "version": settings.model_version,
         "hosted": settings.is_hosted,
     }
