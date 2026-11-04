@@ -81,14 +81,11 @@ def train():
     feature_names = FeatureVector.feature_names()
     print(f"\nFeature matrix: train={X_train.shape}, test={X_test.shape}")
 
-    # Scale once — LR and SVM need it; RF/XGBoost use raw
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
 
     results = {}
 
-    # Logistic Regression (unit-taught baseline) 
-    # Baseline for comparison; linear decision boundary; needs scaling
     print("\nTraining Logistic Regression baseline...")
     t0 = time.time()
     lr = LogisticRegression(class_weight='balanced', max_iter=1000, random_state=42)
@@ -97,8 +94,6 @@ def train():
     results['lr'] = evaluate("Logistic Regression (baseline)", lr, X_test, y_test, scaler)
     results['lr']['train_s'] = round(train_s, 2)
 
-    # Random Forest (unit-taught primary)
-    # Ensemble of decorrelated trees; robust to scale; no normalisation needed
     print("\nTraining Random Forest...")
     t0 = time.time()
     rf = RandomForestClassifier(
@@ -130,10 +125,8 @@ def train():
     results['xgb'] = evaluate("XGBoost", xgb, X_test, y_test)
     results['xgb']['train_s'] = round(train_s, 2)
 
-    # SVM with RBF kernel (beyond unit)
     print("\nTraining SVM (RBF kernel)...")
     t0 = time.time()
-    # CalibratedClassifierCV wraps SVC for predict_proba without deprecation
     _svm_base = SVC(kernel='rbf', class_weight='balanced', random_state=42, C=10.0, gamma='scale')
     svm = CalibratedClassifierCV(_svm_base, ensemble=False)
     svm.fit(X_train_scaled, y_train)
@@ -185,3 +178,5 @@ def train():
 
 if __name__ == '__main__':
     train()
+    import hash_models
+    hash_models.main()

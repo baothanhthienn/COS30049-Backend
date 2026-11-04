@@ -1,0 +1,8 @@
+{
+  "kmeans_model.pkl": "a07ce0f443f4a29c30d214c1259c36cb559f50ebce7731096b1c520d6a4ea4e7",
+  "lr_model.pkl": "2d68688be0629b1ae596e19f16419c370304149f60f8f10b48fdf2be6b6d766c",
+  "rf_model.pkl": "05ac56c4363504fd10225a93da72be45d6dc85f14c073a9eb0df3238f236c60e",
+  "scaler.pkl": "1aec4c94ef730f5faac34916000efb3399812a8a6d158714c9cca35b4481b571",
+  "svm_model.pkl": "4b7f9a0aac46dbdfc73b055b740f8173e70ddb8bec3cd7de6fcc41e6ef00c4d1",
+  "xgb_model.pkl": "bf213c99d0bf9b16834d8054684aea680447f58c3f348a1a4ded5a6ec23bdb19"
+}

@@ -73,10 +73,6 @@ def client():
         app.dependency_overrides.clear()
 
 
-# ---------------------------------------------------------------------------
-# Health
-# ---------------------------------------------------------------------------
-
 class TestHealth:
     def test_returns_200(self, client):
         tc, _, _ = client
@@ -111,7 +107,6 @@ class TestClassify:
     def test_blocked_returns_200(self, client):
         tc, pipeline, session = client
         pipeline.return_value = _BLOCK_RESULT
-        # refresh needs to set id and session_id
         async def fake_refresh(obj):
             obj.id = uuid.uuid4()
             obj.session_id = uuid.UUID(_SESSION_ID)
@@ -196,11 +191,6 @@ class TestRateLimit:
         if r.status_code == 429:
             assert r.json()["error"]["code"] == "RATE_LIMITED"
 
-
-# ---------------------------------------------------------------------------
-# Body size limit
-# ---------------------------------------------------------------------------
-
 class TestBodySizeLimit:
     def test_413_for_oversized_body(self, client):
         tc, _, _ = client
@@ -214,11 +204,6 @@ class TestBodySizeLimit:
         body = tc.post("/api/classify", json={"text": "hi"}, headers=headers).json()
         assert body["error"]["code"] == "PAYLOAD_TOO_LARGE"
 
-
-# ---------------------------------------------------------------------------
-# 404 and unknown routes
-# ---------------------------------------------------------------------------
-
 class TestNotFound:
     def test_unknown_route_returns_404(self, client):
         tc, _, _ = client
@@ -229,11 +214,6 @@ class TestNotFound:
         tc, _, _ = client
         body = tc.get("/api/does-not-exist").json()
         assert "error" in body
-
-
-# ---------------------------------------------------------------------------
-# Security: SQL injection payload stored as literal (not executed)
-# ---------------------------------------------------------------------------
 
 class TestSQLiDefence:
     def test_sqli_payload_in_history_query_returns_200(self, client):

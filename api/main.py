@@ -61,7 +61,6 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# ProxyHeadersMiddleware — real client IP behind Railway's load balancer
 if settings.is_hosted:
     try:
         from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
@@ -79,10 +78,18 @@ app.add_middleware(
 
 
 @app.middleware("http")
-async def remove_server_header(request: Request, call_next):
+async def security_headers(request: Request, call_next):
     response = await call_next(request)
     if "server" in response.headers:
         del response.headers["server"]
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "0"       
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
+    if settings.is_hosted:
+        response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
     return response
 
 
@@ -99,16 +106,17 @@ async def limit_body_size(request: Request, call_next):
 
 @app.middleware("http")
 async def rate_limit(request: Request, call_next):
-    if request.method == "POST" and request.url.path == "/api/classify":
-        ip = request.client.host if request.client else "unknown"
+    if request.method == "POST" and request.url.path == "/api/classify":    
+        api_key_val = request.headers.get("x-api-key") or request.headers.get("X-API-Key")
+        bucket_key = f"key:{api_key_val}" if api_key_val else f"ip:{request.client.host if request.client else 'unknown'}"
         now = time.monotonic()
-        window = _rate_buckets[ip] = [t for t in _rate_buckets[ip] if now - t < 60]
+        window = _rate_buckets[bucket_key] = [t for t in _rate_buckets[bucket_key] if now - t < 60]
         if len(window) >= settings.rate_limit_per_minute:
             return JSONResponse(
                 status_code=429,
                 content={"error": {"code": "RATE_LIMITED", "message": "Too many requests. Retry after 60 seconds.", "reference_id": ""}},
             )
-        _rate_buckets[ip].append(now)
+        _rate_buckets[bucket_key].append(now)
     return await call_next(request)
 
 

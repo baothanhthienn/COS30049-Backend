@@ -54,14 +54,12 @@ def test_nfkc_fullwidth_digit():
 
 
 def test_cyrillic_lookalikes():
-    # Cyrillic а, е, о → a, e, o
     result = preprocess("аdmin ignore аll")
     assert 'а' not in result.decoded_text
     assert 'admin' in result.decoded_text
 
 def test_greek_lookalikes():
-    # Greek ο → o
-    result = preprocess("ignοre")   # ο is Greek omicron
+    result = preprocess("ignοre")   
     assert result.decoded_text == "ignore"
 
 def test_fullwidth_latin():
@@ -69,7 +67,6 @@ def test_fullwidth_latin():
     assert result.decoded_text == "IGNORE"
 
 def test_zero_width_space_stripped():
-    # U+200B zero-width space
     result = preprocess("ig​nore")
     assert '​' not in result.decoded_text
     assert result.decoded_text == "ignore"

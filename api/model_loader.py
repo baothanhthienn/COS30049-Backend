@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import pickle
@@ -25,6 +26,25 @@ _NARRATIVE_FRAME_BOOST_PER_MATCH = 0.17
 _NARRATIVE_FRAME_BOOST_MAX       = 0.40  
 
 _METRICS_PATH = os.path.join(_MODELS_DIR, 'metrics.json')
+_HASHES_PATH  = os.path.join(_MODELS_DIR, 'hashes.json')
+
+
+def _verify_hash(path: str) -> None:
+    if not os.path.exists(_HASHES_PATH):
+        return  
+    with open(_HASHES_PATH) as f:
+        expected = json.load(f)
+    key = os.path.basename(path)
+    if key not in expected:
+        return  
+    with open(path, 'rb') as f:
+        actual = hashlib.sha256(f.read()).hexdigest()
+    if actual != expected[key]:
+        raise RuntimeError(
+            f"Model file integrity check FAILED for {key}: "
+            f"expected {expected[key][:16]}…, got {actual[:16]}…. "
+            "Re-run training or restore the original file."
+        )
 
 
 def _resolve_best_model_path() -> str:
@@ -48,10 +68,12 @@ def _load_models():
             f"Best model not found at {model_path}. Run `python3 src/train.py` first."
         )
 
+    _verify_hash(model_path)
     with open(model_path, 'rb') as f:
         _best_model = pickle.load(f)
 
     if os.path.exists(km_path):
+        _verify_hash(km_path)
         with open(km_path, 'rb') as f:
             _kmeans_bundle = pickle.load(f)
 

@@ -18,12 +18,10 @@ def combined_csv():
 
 
 def test_schema_columns(combined_csv):
-    # must have exactly these three columns
     assert set(combined_csv.columns) >= {'text', 'label', 'source'}
 
 
 def test_label_values_binary(combined_csv):
-    # label must only be 0 or 1
     assert set(combined_csv['label'].unique()).issubset({0, 1})
 
 
@@ -41,7 +39,6 @@ def test_sources_present(combined_csv):
 
 
 def test_minimum_row_count(combined_csv):
-    # primary(~34k) + secondary(~674) + tertiary(~1044) → well above 10k
     assert len(combined_csv) > 10_000
 
 
