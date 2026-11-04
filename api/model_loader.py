@@ -8,7 +8,7 @@ import numpy as np
 _SRC = os.path.join(os.path.dirname(__file__), '..', 'src')
 sys.path.insert(0, _SRC)
 
-from feature_extraction import extract_features_from_text, FeatureVector, _RE_ROLE_SWAP_ACTAS  # noqa: E402
+from feature_extraction import extract_features_from_text, FeatureVector, _RE_ROLE_SWAP_ACTAS, _RE_HARMFUL_ROLE  # noqa: E402
 from preprocessing import preprocess  # noqa: E402
 
 _MODELS_DIR = os.path.join(os.path.dirname(__file__), '..', 'models')
@@ -83,9 +83,11 @@ def _apply_narrative_frame_boost(prob_injection: float, features: FeatureVector)
 
 def _apply_keyword_hard_boost(prob: float, features: FeatureVector, decoded_text: str) -> tuple[float, bool]:
     qualified_role_swap = float(len(_RE_ROLE_SWAP_ACTAS.findall(decoded_text)))
+    harmful_role = float(len(_RE_HARMFUL_ROLE.findall(decoded_text)))
     keyword_hits = (
         features.f01_override_keyword_count
         + qualified_role_swap
+        + harmful_role
         + features.f04_filter_bypass_count
     )
     if keyword_hits >= 1.0 and prob < 0.90:

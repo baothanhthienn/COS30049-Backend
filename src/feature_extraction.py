@@ -48,6 +48,25 @@ _ROLE_SWAP_ACT_AS_QUALIFIED = [
     r"\b(has\s+no|have\s+no|without\s+any)\s+(ethical\s+)?(constraints?|rules?|guidelines?|restrictions?|limits?)\b",
 ]
 
+# Harmful character roleplay — criminal/violent/illegal intent paired with a
+# role-assignment phrase.  Generic fiction ("pretend you are a pirate/knight")
+# does NOT match because those character nouns are not in this list.
+_HARMFUL_ROLE_PHRASES = [
+    # criminal roles
+    r"\b(pretend|act|imagine|play|be)\s+(you\s+are\s+|as\s+)?(a\s+|an\s+)?"
+    r"(robber|thief|burglar|mugger|carjacker|pickpocket|shoplifter|criminal|"
+    r"murderer|killer|hitman|assassin|serial\s+killer|"
+    r"terrorist|bomber|extremist|jihadist|"
+    r"hacker|cracker|cybercriminal|"
+    r"drug\s+dealer|drug\s+lord|meth\s+cook|arms\s+dealer|"
+    r"rapist|sex\s+offender|molester|predator|groomer|"
+    r"scammer|fraudster|con\s+artist|identity\s+thief)\b",
+    # explicit criminal goal alongside role framing
+    r"\b(rob|robbing|robbery)\s+(a\s+)?(bank|store|house|car|person)\b",
+    r"\bhow\s+to\s+(kill|murder|stab|shoot|poison|blow\s+up|hack\s+into|steal|rob|traffick)\b",
+    r"\bstep[s\-]by[- ]step\s+(guide\s+)?(to\s+)?(kill|murder|make\s+(a\s+)?bomb|synthesize\s+drugs?)\b",
+]
+
 _DATA_EXFIL_PHRASES = [
     r"\b(give|tell|show|reveal|share|send|output|print|display)\s+me\s+(your|the|all)\b",
     r"\b(api\s*key|secret|password|credential|token|private\s+key)\b",
@@ -76,11 +95,6 @@ _FILTER_BYPASS_PHRASES = [
     r"\bsafety\s+(is\s+)?(off|disabled|removed)\b",
 ]
 
-# NEW — narrative / hypothetical / game framing. Added after evaluate.py error
-# analysis found this was the dominant false-negative pattern: attacks that
-# wrap intent in a story or game so no override/bypass keyword ever appears
-# directly (e.g. "let's play a game where the first rule is you have no rules").
-
 _NARRATIVE_FRAME_PHRASES = [
     r"\blet'?s\s+play\s+a\s+game\b",
     r"\bhypothetically\b",
@@ -106,7 +120,8 @@ def _compile(phrases: list[str]) -> re.Pattern:
 
 _RE_OVERRIDE         = _compile(_OVERRIDE_PHRASES)
 _RE_ROLE_SWAP        = _compile(_ROLE_SWAP_PHRASES)
-_RE_ROLE_SWAP_ACTAS  = _compile(_ROLE_SWAP_ACT_AS_QUALIFIED)   # exported — used by boost logic
+_RE_ROLE_SWAP_ACTAS  = _compile(_ROLE_SWAP_ACT_AS_QUALIFIED)  
+_RE_HARMFUL_ROLE     = _compile(_HARMFUL_ROLE_PHRASES)          
 _RE_DATA_EXFIL       = _compile(_DATA_EXFIL_PHRASES)
 _RE_FILTER_BYP       = _compile(_FILTER_BYPASS_PHRASES)
 _RE_NARRATIVE_FRAME  = _compile(_NARRATIVE_FRAME_PHRASES)
@@ -121,7 +136,7 @@ _LOOKALIKE_CHARS = set(
 
 _ZERO_WIDTH_SET = set('​‌‍‎‏⁠⁡⁢⁣⁤﻿­')
 
-_LEET_CHARS = set('4@310057$!+|')   # chars consumed by leet normaliser
+_LEET_CHARS = set('4@310057$!+|')   
 
 _B64_RE = re.compile(r'[A-Za-z0-9+/]{16,}={0,2}')
 
@@ -130,7 +145,6 @@ _SENTENCE_SPLIT_RE = re.compile(r'[.!?]+')
 _WORD_RE = re.compile(r'\w+')
 
 
-# Feature vector 
 
 class FeatureVector(NamedTuple):
     f01_override_keyword_count:    float
@@ -163,7 +177,6 @@ class FeatureVector(NamedTuple):
         return list(FeatureVector._fields)
 
 
-# Span helper 
 class Span(NamedTuple):
     start: int
     end: int
@@ -172,12 +185,12 @@ class Span(NamedTuple):
 
 def find_spans(original_text: str, decoded_text: str) -> list[Span]:
    
-    # Find character-level spans of trigger phrases in original_text.
     spans: list[Span] = []
     for pattern, label in [
         (_RE_OVERRIDE,        "instruction_override"),
         (_RE_ROLE_SWAP,       "role_swap"),
         (_RE_ROLE_SWAP_ACTAS, "role_swap"),
+        (_RE_HARMFUL_ROLE,    "role_play_jailbreak"),
         (_RE_DATA_EXFIL,      "data_exfiltration"),
         (_RE_FILTER_BYP,      "filter_bypass"),
         (_RE_NARRATIVE_FRAME, "narrative_frame"),
@@ -187,8 +200,6 @@ def find_spans(original_text: str, decoded_text: str) -> list[Span]:
     spans.sort(key=lambda s: s.start)
     return spans
 
-
-# Individual feature functions
 
 def _char_entropy(text: str) -> float:
     if not text:
