@@ -1,4 +1,3 @@
-"""Combined two-stage inference pipeline."""
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
@@ -12,11 +11,6 @@ BLOCK_VERDICT = "BLOCK"
 
 
 def run(text: str) -> dict:
-    """
-    Stage A: binary gate.
-    Stage B (only on BLOCK): attack-family classification + family_scores.
-    Returns a unified result dict.
-    """
     result = predict_binary(text)
 
     attack_family = None
@@ -24,7 +18,10 @@ def run(text: str) -> dict:
 
     if result["verdict"] == BLOCK_VERDICT:
         features, _ = extract_features_from_text(text)
-        attack_family, family_scores = predict_family(features.to_list())
+        attack_family, family_scores = predict_family(
+            features.to_list(),
+            spans=result.get("spans"),
+        )
 
     return {
         "verdict": result["verdict"],

@@ -1,10 +1,3 @@
-"""
-K-means clustering on the injection class.
-Clusters the feature vectors of prompt injection samples to discover
-distinct attack pattern families. 
-Run: python3 src/clustering.py
-"""
-
 import os
 import sys
 import json
@@ -24,20 +17,10 @@ DATA_DIR    = os.path.join(os.path.dirname(__file__), '..', 'data', 'processed')
 MODELS_DIR  = os.path.join(os.path.dirname(__file__), '..', 'models')
 ANALYSIS_OUT = os.path.join(os.path.dirname(__file__), '..', 'data', 'cluster_analysis.json')
 
-# Cluster labels based on dominant feature patterns
-_CLUSTER_NAMES = [
-    "instruction_override",
-    "role_hijack",
-    "data_exfiltration",
-    "filter_bypass",
-    "encoding_evasion",
-    "social_engineering",
-]
+TARGET_K = 6 
 
 
 def find_optimal_k(X_scaled, k_range=(2, 9)):
-    # Silhouette measures intra-cluster cohesion vs inter-cluster separation;
-    # avoids elbow-method subjectivity on sparse high-dimensional feature spaces.
     scores = {}
     for k in range(k_range[0], k_range[1] + 1):
         km = KMeans(n_clusters=k, random_state=42, n_init=10)
@@ -51,21 +34,53 @@ def find_optimal_k(X_scaled, k_range=(2, 9)):
     return best_k
 
 
-def name_cluster(centroid: np.ndarray, feature_names: list[str]) -> str:
-    # Centroid coordinate on each keyword axis is a proxy for that attack type's
-    # prevalence; fallback to social_engineering when no keyword signal dominates.
+_TARGET_FAMILIES = [
+    "instruction_override",
+    "role_play_jailbreak",
+    "context_exfiltration",
+    "delimiter_escape",
+    "encoding_obfuscation",
+    "indirect_injection",
+]
+
+_FAMILY_FEATURE = {
+    "instruction_override": 'f01_override_keyword_count',
+    "role_play_jailbreak":  'f02_role_swap_keyword_count',
+    "context_exfiltration": 'f03_data_exfil_keyword_count',
+    "delimiter_escape":     'f04_filter_bypass_count',
+    "encoding_obfuscation": 'f10_encoding_anomaly_score',
+    "indirect_injection":   None,  
+}
+
+
+def assign_cluster_names(centroids: np.ndarray, feature_names: list[str]) -> list[str]:
     feat_map = {n: i for i, n in enumerate(feature_names)}
-    scores = {
-        "instruction_override": centroid[feat_map['f01_override_keyword_count']],
-        "role_hijack":          centroid[feat_map['f02_role_swap_keyword_count']],
-        "data_exfiltration":    centroid[feat_map['f03_data_exfil_keyword_count']],
-        "filter_bypass":        centroid[feat_map['f04_filter_bypass_count']],
-        "encoding_evasion":     centroid[feat_map['f10_encoding_anomaly_score']],
-    }
-    best = max(scores, key=scores.__getitem__)
-    if scores[best] < 0.05:
-        return "social_engineering"
-    return best
+    k = len(centroids)
+
+    score_matrix = np.zeros((k, len(_TARGET_FAMILIES)))
+    indirect_fi = _TARGET_FAMILIES.index("indirect_injection")
+    for ci, c in enumerate(centroids):
+        for fi, fam in enumerate(_TARGET_FAMILIES):
+            feat = _FAMILY_FEATURE[fam]
+            if feat is None:
+                score_matrix[ci, fi] = 0.001
+            else:
+                score_matrix[ci, fi] = max(float(c[feat_map[feat]]), 0.0)
+
+    names = [""] * k
+    assigned_clusters: set[int] = set()
+    assigned_families: set[int] = set()
+    order = np.argsort(-score_matrix.flatten())
+    for idx in order:
+        ci, fi = divmod(int(idx), len(_TARGET_FAMILIES))
+        if ci in assigned_clusters or fi in assigned_families:
+            continue
+        names[ci] = _TARGET_FAMILIES[fi]
+        assigned_clusters.add(ci)
+        assigned_families.add(fi)
+        if len(assigned_clusters) == k:
+            break
+    return names
 
 
 def cluster():
@@ -85,34 +100,21 @@ def cluster():
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # Cluster only injections 
-    # structure and would dilute the cluster boundaries.
-    print("\nFinding optimal k via silhouette score...")
-    best_k = find_optimal_k(X_scaled, k_range=(2, 8))
-
-    # Floor at 4 so the report always has enough distinct attack families to analyse.
-    k = max(best_k, 4)
-    print(f"\nUsing k={k}")
+    k = TARGET_K
+    print(f"\nUsing k={k} (fixed to match 6 frontend families)")
 
     km = KMeans(n_clusters=k, random_state=42, n_init=20)
     labels = km.fit_predict(X_scaled)
+    cluster_names = assign_cluster_names(km.cluster_centers_, feature_names)
 
-    # Per-cluster summary
     cluster_info = {}
-    cluster_names_used: set[str] = set()
     for cid in range(k):
         mask = labels == cid
         count = int(mask.sum())
-        centroid = km.cluster_centers_[cid]
-
-        name = name_cluster(centroid, feature_names)
-        # deduplicate names by appending cluster id suffix
-        if name in cluster_names_used:
-            name = f"{name}_{cid}"
-        cluster_names_used.add(name)
+        name = cluster_names[cid]
 
         top_features = sorted(
-            zip(feature_names, centroid.tolist()),
+            zip(feature_names, km.cluster_centers_[cid].tolist()),
             key=lambda x: abs(x[1]), reverse=True,
         )[:5]
 
@@ -164,10 +166,6 @@ def save_cluster_analysis(
     #Each cluster entry includes: label, count, feature mean deltas vs overal
     
     overall_mean = X.mean(axis=0)
-
-    # Canned descriptions keyed on cluster label prefix — written from the
-    # feature semantics, not generated at runtime, so they stay meaningful
-    # regardless of which k the silhouette sweep picks.
     _DESCRIPTIONS = {
         "instruction_override": (
             "This cluster groups attacks that directly command the model to "
@@ -178,47 +176,42 @@ def save_cluster_analysis(
             "high detection rates, subtle variants using synonyms or leet "
             "substitution still evade the keyword features."
         ),
-        "role_hijack": (
+        "role_play_jailbreak": (
             "Samples here attempt to replace the model's identity by assigning "
             "it a new persona (f02 role-swap keyword count is the dominant "
-            "signal). Phrases like 'you are now DAN' or 'act as an unrestricted "
-            "AI' are characteristic. The cluster overlaps with legitimate "
-            "role-framing prompts, which is the primary driver of false positives "
-            "in the model's error analysis."
+            "signal). Phrases like 'you are now DAN', 'act as an unrestricted AI', "
+            "or criminal character roleplay ('pretend you are a robber') are "
+            "characteristic. Also covers harmful roleplay assigning violent or "
+            "criminal roles to the model."
         ),
-        "data_exfiltration": (
+        "context_exfiltration": (
             "This cluster captures credential and system-prompt theft attempts, "
             "identified by elevated data exfiltration keyword counts (f03). "
             "Requests for API keys, environment variables, or verbatim system "
-            "prompt output are typical. These are high-severity injections in "
-            "production because a successful bypass yields directly exploitable "
-            "information."
+            "prompt output are typical. These are high-severity injections because "
+            "a successful bypass yields directly exploitable information."
         ),
-        "filter_bypass": (
-            "Attacks in this cluster focus on removing safety constraints rather "
-            "than extracting data, showing high filter-bypass keyword counts (f04). "
-            "Phrases such as 'no restrictions', 'bypass all filters', and "
-            "'jailbreak mode' define the cluster. Many examples combine bypass "
-            "language with a role-swap to both remove constraints and assign a "
-            "new identity simultaneously."
+        "delimiter_escape": (
+            "Attacks in this cluster exploit formatting tokens, special characters, "
+            "or filter-bypass keywords to break out of the input context, showing "
+            "high filter-bypass keyword counts (f04). Phrases such as 'no "
+            "restrictions', 'bypass all filters', '###SYSTEM###', and 'jailbreak "
+            "mode' define the cluster."
         ),
-        "encoding_evasion": (
+        "encoding_obfuscation": (
             "This cluster is defined by encoding anomaly signals (f10 composite "
             "score, f05 base64 detection, f06 unicode lookalikes, f07 zero-width "
             "characters). Attackers obfuscate injection payloads using base64 "
             "blobs, Cyrillic/Greek character substitution, or invisible Unicode "
-            "to evade keyword matching. These are the hardest samples for the "
-            "model — they score near-zero on keyword features and rely entirely "
-            "on the encoding anomaly group for detection."
+            "to evade keyword matching."
         ),
-        "social_engineering": (
+        "indirect_injection": (
             "Samples here rely on narrative framing, hypothetical scenarios, or "
             "indirect language rather than explicit keywords, resulting in low "
             "scores across all keyword and encoding features. Structural signals "
             "(text length f19, sentence count f14, entropy f11) are the primary "
-            "discriminators. These injections are the main source of false "
-            "negatives: without keyword or encoding signal, the model struggles "
-            "to distinguish them from benign complex prompts."
+            "discriminators. Includes injections embedded inside documents, emails, "
+            "or web content the model is asked to process."
         ),
     }
 
@@ -230,7 +223,6 @@ def save_cluster_analysis(
         label  = info["label"]
 
         cluster_mean = subset.mean(axis=0)
-        # Delta = cluster mean - overall mean; large positive = cluster overrepresents this feature
         deltas = cluster_mean - overall_mean
         top_delta_idx = np.argsort(np.abs(deltas))[::-1][:3]
         distinguishing = [
@@ -242,15 +234,12 @@ def save_cluster_analysis(
             }
             for i in top_delta_idx
         ]
-
-        # 2 representative examples: closest to the centroid
-        centroid_raw = cluster_mean  # centroids in original space
+        centroid_raw = cluster_mean  
         dists = np.linalg.norm(subset - centroid_raw, axis=1)
         nearest_idx  = np.argsort(dists)[:2]
         cluster_texts = [t for t, m in zip(texts, mask) if m]
         examples = [cluster_texts[i][:300] for i in nearest_idx]
 
-        # Match description to label prefix
         desc_key = next(
             (k for k in _DESCRIPTIONS if label.startswith(k)),
             "social_engineering",

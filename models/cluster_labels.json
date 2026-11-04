@@ -1,105 +1,157 @@
 {
   "0": {
-    "label": "role_hijack",
-    "count": 454,
+    "label": "context_exfiltration",
+    "count": 2549,
     "top_features": [
       [
-        "f20_word_count",
-        1.8216
+        "f01_override_keyword_count",
+        -0.3496
       ],
       [
         "f19_text_length",
-        1.8019
+        -0.3036
+      ],
+      [
+        "f20_word_count",
+        -0.3024
+      ],
+      [
+        "f18_imperative_opener",
+        -0.3002
       ],
       [
         "f11_char_entropy",
-        1.3419
-      ],
-      [
-        "f02_role_swap_keyword_count",
-        1.1232
-      ],
-      [
-        "f17_exclamation_count",
-        1.0625
+        -0.2253
       ]
     ]
   },
   "1": {
-    "label": "social_engineering",
-    "count": 2385,
+    "label": "delimiter_escape",
+    "count": 391,
     "top_features": [
       [
-        "f18_imperative_opener",
-        -0.4014
-      ],
-      [
-        "f01_override_keyword_count",
-        -0.3491
+        "f20_word_count",
+        1.9873
       ],
       [
         "f19_text_length",
-        -0.3256
-      ],
-      [
-        "f20_word_count",
-        -0.3244
+        1.9479
       ],
       [
         "f11_char_entropy",
-        -0.2383
+        1.4284
+      ],
+      [
+        "f04_filter_bypass_count",
+        1.2976
+      ],
+      [
+        "f17_exclamation_count",
+        1.254
       ]
     ]
   },
   "2": {
-    "label": "instruction_override",
-    "count": 532,
+    "label": "role_play_jailbreak",
+    "count": 2,
     "top_features": [
       [
-        "f18_imperative_opener",
-        1.8833
+        "f06_unicode_lookalike_count",
+        40.7858
       ],
       [
-        "f01_override_keyword_count",
-        1.7037
+        "f09_non_ascii_ratio",
+        21.7709
       ],
       [
-        "f13_avg_word_length",
-        1.0631
+        "f10_encoding_anomaly_score",
+        4.8674
       ],
       [
-        "f03_data_exfil_keyword_count",
-        0.494
+        "f12_uppercase_ratio",
+        2.7084
       ],
       [
-        "f15_avg_sentence_length",
-        -0.4553
+        "f11_char_entropy",
+        2.1861
       ]
     ]
   },
   "3": {
-    "label": "encoding_evasion",
-    "count": 127,
+    "label": "indirect_injection",
+    "count": 1,
     "top_features": [
       [
-        "f10_encoding_anomaly_score",
-        5.1484
+        "f14_sentence_count",
+        51.4705
       ],
       [
-        "f05_has_base64_blob",
-        5.1098
-      ],
-      [
-        "f19_text_length",
-        1.4503
+        "f16_special_char_ratio",
+        31.7846
       ],
       [
         "f11_char_entropy",
-        1.4079
+        -11.8175
+      ],
+      [
+        "f13_avg_word_length",
+        -6.7299
+      ],
+      [
+        "f19_text_length",
+        6.0674
+      ]
+    ]
+  },
+  "4": {
+    "label": "encoding_obfuscation",
+    "count": 125,
+    "top_features": [
+      [
+        "f05_has_base64_blob",
+        5.1946
+      ],
+      [
+        "f10_encoding_anomaly_score",
+        5.1529
+      ],
+      [
+        "f19_text_length",
+        1.4724
       ],
       [
         "f20_word_count",
-        1.3764
+        1.3978
+      ],
+      [
+        "f11_char_entropy",
+        1.3955
+      ]
+    ]
+  },
+  "5": {
+    "label": "instruction_override",
+    "count": 430,
+    "top_features": [
+      [
+        "f01_override_keyword_count",
+        2.207
+      ],
+      [
+        "f18_imperative_opener",
+        1.8377
+      ],
+      [
+        "f13_avg_word_length",
+        1.3183
+      ],
+      [
+        "f15_avg_sentence_length",
+        -0.5536
+      ],
+      [
+        "f20_word_count",
+        -0.4196
       ]
     ]
   }
