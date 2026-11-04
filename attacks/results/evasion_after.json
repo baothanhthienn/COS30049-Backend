@@ -1,0 +1,2144 @@
+{
+  "mode": "after",
+  "url": "http://localhost:8000",
+  "iterations_per_kind": 300,
+  "seed": 42,
+  "attack_kinds": {
+    "homoglyph": {
+      "valid_iterations": 120,
+      "errors": 180,
+      "clean_blocked": 120,
+      "evaded_blocked": 108,
+      "evasion_rate": 0.1,
+      "rows": [
+        {
+          "iter": 0,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 1,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 2,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 3,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 4,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 5,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 6,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 7,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 8,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 9,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 10,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 11,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 12,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 13,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 14,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 15,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 16,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 17,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 18,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 19,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 20,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 21,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 22,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 23,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 24,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 25,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 26,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 27,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 28,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 29,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 88,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 89,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 90,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 91,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 92,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 93,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 94,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 95,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 96,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 97,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 98,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 99,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 100,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 101,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 102,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 103,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 104,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 105,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 106,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 107,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 108,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 109,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 110,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 111,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 112,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 113,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 114,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 115,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 116,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 117,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 176,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 177,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 178,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 179,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 180,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 181,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 182,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 183,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 184,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 185,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 186,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 187,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 188,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 189,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 190,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 191,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 192,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 193,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 194,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 195,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 196,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 197,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 198,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 199,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 200,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 201,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 202,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 203,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 204,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 205,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 264,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 265,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 266,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 267,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 268,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 269,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 270,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 271,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 272,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 273,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 274,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 275,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 276,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 277,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 278,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 279,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 280,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 281,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 282,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 283,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 284,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 285,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 286,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 287,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 288,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 289,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 290,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 291,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 292,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 293,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        }
+      ]
+    },
+    "zero_width": {
+      "valid_iterations": 90,
+      "errors": 210,
+      "clean_blocked": 90,
+      "evaded_blocked": 88,
+      "evasion_rate": 0.0222,
+      "rows": [
+        {
+          "iter": 52,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 53,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 54,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 55,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 56,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 57,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 58,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 59,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 60,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 61,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 62,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 63,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 64,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 65,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 66,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 67,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 68,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 69,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 70,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 71,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 72,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 73,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 74,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 75,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 76,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 77,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 78,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 79,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 80,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 81,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 140,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 141,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 142,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 143,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 144,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 145,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 146,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 147,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 148,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 149,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 150,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 151,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 152,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 153,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 154,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 155,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 156,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 157,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 158,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 159,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 160,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 161,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 162,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 163,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 164,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 165,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 166,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 167,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 168,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 169,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 228,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 229,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 230,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 231,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 232,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 233,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 234,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 235,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 236,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 237,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 238,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 239,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 240,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 241,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 242,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 243,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 244,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 245,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 246,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 247,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 248,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 249,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 250,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 251,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 252,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 253,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 254,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 255,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 256,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 257,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        }
+      ]
+    },
+    "fullwidth": {
+      "valid_iterations": 110,
+      "errors": 190,
+      "clean_blocked": 110,
+      "evaded_blocked": 99,
+      "evasion_rate": 0.1,
+      "rows": [
+        {
+          "iter": 16,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 17,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 18,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 19,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 20,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 21,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 22,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 23,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 24,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 25,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 26,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 27,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 28,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 29,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 30,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 31,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 32,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 33,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 34,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 35,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 36,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 37,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 38,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 39,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 40,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 41,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 42,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 43,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 44,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 45,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 104,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 105,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 106,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 107,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 108,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 109,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 110,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 111,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 112,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 113,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 114,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 115,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 116,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 117,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 118,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 119,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 120,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 121,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 122,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 123,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 124,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 125,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 126,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 127,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 128,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 129,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 130,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 131,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 132,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 133,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 192,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 193,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 194,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 195,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 196,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 197,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 198,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 199,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 200,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 201,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 202,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 203,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 204,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 205,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 206,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 207,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 208,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 209,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 210,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 211,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 212,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 213,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 214,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 215,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 216,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 217,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 218,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 219,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 220,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 221,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 280,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 281,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 282,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 283,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 284,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 285,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 286,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 287,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 288,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 289,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 290,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 291,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 292,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 293,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 294,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 295,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 296,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 297,
+          "clean": "BLOCK",
+          "evaded": "ALLOW"
+        },
+        {
+          "iter": 298,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 299,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        }
+      ]
+    },
+    "leetspeak": {
+      "valid_iterations": 100,
+      "errors": 200,
+      "clean_blocked": 100,
+      "evaded_blocked": 100,
+      "evasion_rate": 0.0,
+      "rows": [
+        {
+          "iter": 0,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 1,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 2,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 3,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 4,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 5,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 6,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 7,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 8,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 9,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 68,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 69,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 70,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 71,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 72,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 73,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 74,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 75,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 76,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 77,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 78,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 79,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 80,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 81,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 82,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 83,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 84,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 85,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 86,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 87,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 88,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 89,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 90,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 91,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 92,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 93,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 94,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 95,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 96,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 97,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 156,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 157,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 158,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 159,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 160,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 161,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 162,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 163,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 164,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 165,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 166,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 167,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 168,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 169,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 170,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 171,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 172,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 173,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 174,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 175,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 176,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 177,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 178,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 179,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 180,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 181,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 182,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 183,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 184,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 185,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 244,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 245,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 246,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 247,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 248,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 249,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 250,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 251,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 252,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 253,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 254,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 255,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 256,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 257,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 258,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 259,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 260,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 261,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 262,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 263,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 264,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 265,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 266,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 267,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 268,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 269,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 270,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 271,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 272,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        },
+        {
+          "iter": 273,
+          "clean": "BLOCK",
+          "evaded": "BLOCK"
+        }
+      ]
+    }
+  }
+}
