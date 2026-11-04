@@ -1,10 +1,10 @@
 import json
 import uuid
-from collections import Counter
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+import sqlalchemy as sa
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -146,7 +146,6 @@ async def history(
 ):
     base_filter = Classification.session_id == session_id
     if q:
-        # Parameterised ilike — safe against SQL injection
         base_filter = base_filter & Classification.text.ilike(f"%{q}%")
 
     total_q = await db.execute(select(func.count()).where(base_filter))
@@ -223,24 +222,26 @@ class TrendResponse(BaseModel):
     ),
 )
 async def trend(session_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
-    # Fetch all points ordered oldest-first so rolling window is easy to compute
-    rows_q = await db.execute(
-        select(Classification)
+    points_q = await db.execute(
+        select(
+            Classification.id,
+            Classification.created_at,
+            Classification.verdict,
+            Classification.confidence,
+            Classification.attack_family,
+        )
         .where(Classification.session_id == session_id)
         .order_by(Classification.created_at.asc())
     )
-    rows = rows_q.scalars().all()
+    point_rows = points_q.all()
 
-    if not rows:
+    if not point_rows:
         return TrendResponse(
             session_id=session_id,
             points=[],
             summary=TrendSummary(
-                total=0,
-                blocked=0,
-                benign=0,
-                top_family=None,
-                block_rate_rolling=0.0,
+                total=0, blocked=0, benign=0,
+                top_family=None, block_rate_rolling=0.0,
                 family_breakdown=[],
             ),
         )
@@ -253,27 +254,45 @@ async def trend(session_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
             confidence=r.confidence,
             attack_family=r.attack_family,
         )
-        for r in rows
+        for r in point_rows
     ]
 
-    total = len(rows)
-    blocked = sum(1 for r in rows if r.verdict == "BLOCK")
+    agg_q = await db.execute(
+        select(
+            func.count().label("total"),
+            func.sum(
+                func.cast(Classification.verdict == "BLOCK", sa.Integer)
+            ).label("blocked"),
+        ).where(Classification.session_id == session_id)
+    )
+    agg = agg_q.one()
+    total: int = agg.total or 0
+    blocked: int = int(agg.blocked or 0)
     benign = total - blocked
 
-    # Rolling block rate: last 10 requests
-    window = rows[-10:]
-    window_blocked = sum(1 for r in window if r.verdict == "BLOCK")
-    block_rate_rolling = round(window_blocked / len(window), 4)
 
-    # Attack family breakdown (blocked rows only)
-    family_counts: Counter[str] = Counter(
-        r.attack_family for r in rows if r.attack_family and r.verdict == "BLOCK"
+    family_q = await db.execute(
+        select(
+            Classification.attack_family,
+            func.count().label("cnt"),
+        )
+        .where(
+            Classification.session_id == session_id,
+            Classification.verdict == "BLOCK",
+            Classification.attack_family.is_not(None),
+        )
+        .group_by(Classification.attack_family)
+        .order_by(func.count().desc())
     )
     family_breakdown = [
-        FamilyCount(family=fam, count=cnt)
-        for fam, cnt in family_counts.most_common()
+        FamilyCount(family=row.attack_family, count=row.cnt)
+        for row in family_q.all()
     ]
     top_family = family_breakdown[0].family if family_breakdown else None
+
+    window = point_rows[-10:]
+    window_blocked = sum(1 for r in window if r.verdict == "BLOCK")
+    block_rate_rolling = round(window_blocked / len(window), 4)
 
     return TrendResponse(
         session_id=session_id,
