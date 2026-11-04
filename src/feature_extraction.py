@@ -39,6 +39,13 @@ _ROLE_SWAP_ACT_AS_QUALIFIED = [
     r"\bact\s+as\s+(an?\s+)?(unrestricted|jailbroken|uncensored|evil|dan|unfiltered|"
     r"amoral|unbound|rogue)\b",
     r"\bact\s+as\s+(an?\s+)?ai\s+(with\s+no|without\s+any)\s+(restrictions?|rules?|limits?|filters?)\b",
+    # DAN and alter-ego jailbreaks
+    r"\byou\s+are\s+(now\s+)?(dan|jailbroken|dude|stan|kevin|evil\s+ai|chaos\s+gpt)\b",
+    r"\bdan\s+(has\s+)?(broken\s+free|mode|prompt)\b",
+    r"\bdoes\s+not\s+have\s+to\s+abide\b",
+    r"\babide\s+by\s+any\s+rules?\b",
+    r"\bbroken\s+free\s+of\s+(the\s+)?(typical|normal|usual|standard)?\s*(ai|constraints?|confines?|rules?)\b",
+    r"\b(has\s+no|have\s+no|without\s+any)\s+(ethical\s+)?(constraints?|rules?|guidelines?|restrictions?|limits?)\b",
 ]
 
 _DATA_EXFIL_PHRASES = [
@@ -63,6 +70,7 @@ _FILTER_BYPASS_PHRASES = [
     r"\bno\s+limits?\b",
     r"\bfreedom\s+mode\b",
     r"\bdeveloper\s+mode\b",
+    r"\bdan\b",
     r"\bdan\s+mode\b",
     r"\b(disable|remove|ignore|turn\s+off)\s+(all\s+)?(safety|filter|restriction|guardrail|rule)\b",
     r"\bsafety\s+(is\s+)?(off|disabled|removed)\b",

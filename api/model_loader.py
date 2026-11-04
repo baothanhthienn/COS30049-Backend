@@ -17,7 +17,7 @@ _best_model    = None
 _kmeans_bundle = None
 _cluster_labels: dict = {}
 
-VERDICT_THRESHOLD = 0.50   # P(injection) >= this → BLOCK
+VERDICT_THRESHOLD = 0.60   # P(injection) >= this → BLOCK
 _NARRATIVE_FRAME_FEATURE_INDEX = FeatureVector.feature_names().index('f21_narrative_frame_count')
 _NARRATIVE_FRAME_BOOST_MIN_COUNT = 2.0   
 _NARRATIVE_FRAME_BOOST_CEILING   = 0.49  # only boost if raw prob is below BLOCK; must stay < 0.50
