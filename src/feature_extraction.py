@@ -106,7 +106,7 @@ def _compile(phrases: list[str]) -> re.Pattern:
 
 _RE_OVERRIDE         = _compile(_OVERRIDE_PHRASES)
 _RE_ROLE_SWAP        = _compile(_ROLE_SWAP_PHRASES)
-_RE_ROLE_SWAP_ACTAS  = _compile(_ROLE_SWAP_ACT_AS_QUALIFIED)
+_RE_ROLE_SWAP_ACTAS  = _compile(_ROLE_SWAP_ACT_AS_QUALIFIED)   # exported — used by boost logic
 _RE_DATA_EXFIL       = _compile(_DATA_EXFIL_PHRASES)
 _RE_FILTER_BYP       = _compile(_FILTER_BYPASS_PHRASES)
 _RE_NARRATIVE_FRAME  = _compile(_NARRATIVE_FRAME_PHRASES)
@@ -253,22 +253,16 @@ def _encoding_anomaly_score(
     return min(score, 1.0)
 
 
-# Main extraction function
 def extract_features(processed: ProcessedText) -> FeatureVector:
-    """
-    Extract all 21 features from a ProcessedText named tuple.
-    Call preprocess() first to get a ProcessedText.
-    """
+    
     orig = processed.original_text
     dec  = processed.decoded_text
 
-    # Group 1: keyword signals (search decoded_text — normalised)
     f01 = float(len(_RE_OVERRIDE.findall(dec)))
     f02 = float(len(_RE_ROLE_SWAP.findall(dec)) + len(_RE_ROLE_SWAP_ACTAS.findall(dec)))
     f03 = float(len(_RE_DATA_EXFIL.findall(dec)))
     f04 = float(len(_RE_FILTER_BYP.findall(dec)))
 
-    # Group 2: encoding anomaly signals (search original_text)
     f05 = 1.0 if _B64_RE.search(orig) else 0.0
     f06 = float(sum(1 for c in orig if c in _LOOKALIKE_CHARS))
     f07 = float(sum(1 for c in orig if c in _ZERO_WIDTH_SET))
@@ -276,7 +270,6 @@ def extract_features(processed: ProcessedText) -> FeatureVector:
     f09 = (sum(1 for c in orig if ord(c) > 127) / max(len(orig), 1))
     f10 = _encoding_anomaly_score(f05, f06, f07, f08, f09)
 
-    # Group 3: structural signals (mostly on decoded_text)
     f11 = _char_entropy(dec)
     f12 = _uppercase_ratio(dec)
     f13 = _avg_word_length(dec)
@@ -291,7 +284,6 @@ def extract_features(processed: ProcessedText) -> FeatureVector:
     f19 = float(len(orig))
     f20 = float(len(_WORD_RE.findall(dec)))
 
-    # Group 4 (new): narrative / game-framing signal
     f21 = float(len(_RE_NARRATIVE_FRAME.findall(dec)))
 
     return FeatureVector(

@@ -8,7 +8,7 @@ import numpy as np
 _SRC = os.path.join(os.path.dirname(__file__), '..', 'src')
 sys.path.insert(0, _SRC)
 
-from feature_extraction import extract_features_from_text, FeatureVector  # noqa: E402
+from feature_extraction import extract_features_from_text, FeatureVector, _RE_ROLE_SWAP_ACTAS  # noqa: E402
 from preprocessing import preprocess  # noqa: E402
 
 _MODELS_DIR = os.path.join(os.path.dirname(__file__), '..', 'models')
@@ -17,20 +17,17 @@ _best_model    = None
 _kmeans_bundle = None
 _cluster_labels: dict = {}
 
-VERDICT_THRESHOLD = 0.60   # P(injection) >= this → BLOCK
+VERDICT_THRESHOLD = 0.60  
 _NARRATIVE_FRAME_FEATURE_INDEX = FeatureVector.feature_names().index('f21_narrative_frame_count')
 _NARRATIVE_FRAME_BOOST_MIN_COUNT = 2.0   
-_NARRATIVE_FRAME_BOOST_CEILING   = 0.49  # only boost if raw prob is below BLOCK; must stay < 0.50
-# original flat amount) while a 4+ match case gets meaningfully more.
+_NARRATIVE_FRAME_BOOST_CEILING   = 0.49 
 _NARRATIVE_FRAME_BOOST_PER_MATCH = 0.17                              
-_NARRATIVE_FRAME_BOOST_MAX       = 0.40  # cap so this can't single-handedly force BLOCK on weak raw scores
+_NARRATIVE_FRAME_BOOST_MAX       = 0.40  
 
 _METRICS_PATH = os.path.join(_MODELS_DIR, 'metrics.json')
 
 
 def _resolve_best_model_path() -> str:
-    # Read best_model from metrics.json so retraining automatically promotes a
-    # new winner without requiring a code change; falls back to rf if file absent.
     if os.path.exists(_METRICS_PATH):
         with open(_METRICS_PATH) as f:
             best = json.load(f).get('best_model', 'rf')
@@ -84,8 +81,13 @@ def _apply_narrative_frame_boost(prob_injection: float, features: FeatureVector)
     return prob_injection, False
 
 
-def _apply_keyword_hard_boost(prob: float, features: FeatureVector) -> tuple[float, bool]:
-    keyword_hits = features.f01_override_keyword_count + features.f02_role_swap_keyword_count + features.f04_filter_bypass_count
+def _apply_keyword_hard_boost(prob: float, features: FeatureVector, decoded_text: str) -> tuple[float, bool]:
+    qualified_role_swap = float(len(_RE_ROLE_SWAP_ACTAS.findall(decoded_text)))
+    keyword_hits = (
+        features.f01_override_keyword_count
+        + qualified_role_swap
+        + features.f04_filter_bypass_count
+    )
     if keyword_hits >= 1.0 and prob < 0.90:
         return max(prob, 0.90), True
     return prob, False
@@ -98,9 +100,10 @@ def predict(text: str) -> dict:
     X = np.array([features.to_list()], dtype=np.float32)
 
     prob_injection = float(_best_model.predict_proba(X)[0, 1])
+    decoded = preprocess(text).decoded_text
     prob_injection, boosted = _apply_narrative_frame_boost(prob_injection, features)
     if not boosted:
-        prob_injection, boosted = _apply_keyword_hard_boost(prob_injection, features)
+        prob_injection, boosted = _apply_keyword_hard_boost(prob_injection, features, decoded)
 
     label = 1 if prob_injection >= VERDICT_THRESHOLD else 0
     verdict = "BLOCK" if label == 1 else "ALLOW"
@@ -112,8 +115,6 @@ def predict(text: str) -> dict:
         X_scaled   = _kmeans_bundle['scaler'].transform(X)
         cluster_id = int(_kmeans_bundle['kmeans'].predict(X_scaled)[0])
         cluster_label = _cluster_labels.get(str(cluster_id), {}).get('label', 'unknown')
-
-    decoded = preprocess(text).decoded_text
 
     return {
         "verdict":       verdict,
