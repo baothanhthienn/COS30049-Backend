@@ -10,7 +10,11 @@ _SRC = os.path.join(os.path.dirname(__file__), '..', 'src')
 sys.path.insert(0, _SRC)
 
 from feature_extraction import extract_features_from_text, FeatureVector, _RE_ROLE_SWAP_ACTAS, _RE_HARMFUL_ROLE  # noqa: E402
-from preprocessing import preprocess  # noqa: E402
+from preprocessing import preprocess  
+
+def _get_normalise_flag() -> bool:
+    from api.core.config import settings  
+    return settings.normalise
 
 _MODELS_DIR = os.path.join(os.path.dirname(__file__), '..', 'models')
 
@@ -124,7 +128,7 @@ def predict(text: str) -> dict:
     X = np.array([features.to_list()], dtype=np.float32)
 
     prob_injection = float(_best_model.predict_proba(X)[0, 1])
-    decoded = preprocess(text).decoded_text
+    decoded = preprocess(text, normalise=_get_normalise_flag()).decoded_text
     prob_injection, boosted = _apply_narrative_frame_boost(prob_injection, features)
     if not boosted:
         prob_injection, boosted = _apply_keyword_hard_boost(prob_injection, features, decoded)

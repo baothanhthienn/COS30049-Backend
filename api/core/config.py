@@ -13,11 +13,11 @@ class Settings(BaseSettings):
     api_key: str = ""  
     rate_limit_per_minute: int = 60
     inference_concurrency: int = 10
-    max_body_bytes: int = 1_048_576  
+    max_body_bytes: int = 1_048_576
+    normalise: bool = True
 
     @property
     def is_hosted(self) -> bool:
-        # Railway auto-injects
         return any(
             os.getenv(v)
             for v in ("RAILWAY_ENVIRONMENT_NAME", "RAILWAY_ENVIRONMENT", "RAILWAY_PUBLIC_DOMAIN", "RAILWAY_SERVICE_NAME")
@@ -25,7 +25,6 @@ class Settings(BaseSettings):
 
     @property
     def database_ssl(self) -> bool:
-        # Railway PostgreSQL requires SSL; disabled for local dev
         return self.is_hosted
 
 
