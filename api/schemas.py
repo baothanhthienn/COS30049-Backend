@@ -3,8 +3,6 @@ from pydantic import BaseModel, Field
 
 
 class PredictRequest(BaseModel):
-    # 10k char cap prevents feature extraction from running on arbitrarily large
-    # payloads; prompt injection attempts are rarely longer than a few paragraphs.
     text: str = Field(..., min_length=1, max_length=10_000)
 
 

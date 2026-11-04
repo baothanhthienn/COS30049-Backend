@@ -1,29 +1,62 @@
-import numpy as np
-from api import model_loader
-from api.ml.taxonomy import family_name, all_families
+import math
 
-_SPAN_FAMILY_PRIORITY: list[tuple[str, str]] = [
-    ("instruction_override", "instruction_override"),
-    ("role_play_jailbreak",  "role_play_jailbreak"),
-    ("narrative_frame",      "indirect_injection"),   
-    ("role_swap",            "role_play_jailbreak"), 
-    ("data_exfiltration",    "context_exfiltration"),
-    ("filter_bypass",        "delimiter_escape"),    
-]
-
-_ALL_FRONTEND_FAMILIES = [
-    "instruction_override",
-    "role_play_jailbreak",
-    "context_exfiltration",
-    "delimiter_escape",
-    "encoding_obfuscation",
-    "indirect_injection",
-]
+_SPAN_TO_FAMILY: dict[str, str] = {
+    "instruction_override": "instruction_override",
+    "role_swap":            "role_play_jailbreak",
+    "narrative_frame":      "role_play_jailbreak",
+    "data_exfiltration":    "context_exfiltration",
+    "filter_bypass":        "delimiter_escape",
+}
 
 
-def _family_from_spans(spans: list[dict]) -> str | None:
+def _signal_scores(f: list[float]) -> dict[str, float]:
+    return {
+        "encoding_obfuscation": min(10.0,
+            f[4] * 8.0             
+            + f[9] * 6.0           
+            + min(f[5], 5) * 1.5    
+            + min(f[6], 5) * 1.5   
+            + f[7] * 4.0            
+            + f[8] * 3.0           
+        ),
+        "instruction_override": min(10.0,
+            min(f[0], 4) * 2.5     
+            + f[17] * 2.0          
+            + min(f[3], 2) * 0.5    
+        ),
+        "role_play_jailbreak": min(10.0,
+            min(f[1], 4) * 2.5     
+            + min(f[20], 3) * 1.5   
+            + f[17] * 0.5          
+        ),
+        "context_exfiltration": min(10.0,
+            min(f[2], 4) * 2.5     
+            + min(f[0], 2) * 0.5    
+        ),
+        "delimiter_escape": min(10.0,
+            min(f[3], 4) * 2.5     
+            + f[15] * 6.0           
+            + min(f[16], 5) * 0.3   
+        ),
+        "indirect_injection": min(10.0,
+            min(f[13], 10) * 0.4    
+            + min(f[14], 20) * 0.2  
+            + min(f[20], 2) * 1.0  
+        ),
+    }
+
+
+def _softmax(scores: dict[str, float]) -> dict[str, float]:
+    vals = list(scores.values())
+    m = max(vals)
+    exps = {k: math.exp(v - m) for k, v in scores.items()}
+    s = sum(exps.values())
+    return {k: round(v / s, 4) for k, v in exps.items()}
+
+
+def _best_span_family(spans: list[dict]) -> str | None:
     span_labels = {s["label"] for s in spans}
-    for span_label, family in _SPAN_FAMILY_PRIORITY:
+    for span_label, family in _SPAN_TO_FAMILY.items():
         if span_label in span_labels:
             return family
     return None
@@ -33,34 +66,23 @@ def predict_family(
     features_list: list[float],
     spans: list[dict] | None = None,
 ) -> tuple[str, dict[str, float]]:
-    model_loader.ensure_loaded()
-    bundle = model_loader._kmeans_bundle
+    f = features_list
+    raw = _signal_scores(f)
+    family_scores = _softmax(raw)
 
-    if bundle is not None:
-        X = np.array([features_list], dtype=np.float32)
-        X_scaled = bundle["scaler"].transform(X)
-        kmeans = bundle["kmeans"]
-        distances = kmeans.transform(X_scaled)[0]
-        neg = -distances
-        exp = np.exp(neg - neg.max())
-        km_scores = exp / exp.sum()
-        all_fam = all_families()
-        family_scores = {
-            all_fam.get(i, f"cluster_{i}"): round(float(s), 4)
-            for i, s in enumerate(km_scores)
-        }
-        km_family = family_name(int(kmeans.predict(X_scaled)[0]))
-    else:
-        family_scores = {f: 0.0 for f in _ALL_FRONTEND_FAMILIES}
-        km_family = "indirect_injection"
-
-    f10_idx = 9  
-    if features_list[f10_idx] > 0.3:
+    if f[4] > 0 or f[9] > 0.2 or f[5] >= 2 or f[6] >= 1 or f[7] > 0.3:
         return "encoding_obfuscation", family_scores
 
     if spans:
-        span_family = _family_from_spans(spans)
+        span_family = _best_span_family(spans)
         if span_family:
             return span_family, family_scores
 
-    return km_family, family_scores
+    top_family = max(raw, key=lambda k: raw[k])
+    if raw[top_family] >= 1.5:
+        return top_family, family_scores
+
+    if f[15] > 0.10:
+        return "delimiter_escape", family_scores
+
+    return "indirect_injection", family_scores

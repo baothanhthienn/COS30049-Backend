@@ -34,10 +34,10 @@ def health():
 
 @router.get("/api/health/db")
 async def health_db():
-    """Temporary: test DB connectivity and return the raw error if it fails."""
     try:
         async with AsyncSessionLocal() as session:
             await session.execute(text("SELECT 1"))
         return {"db": "ok"}
     except Exception as exc:
-        return {"db": "error", "detail": str(exc)}
+        _logger.error("DB health check failed: %s", exc)
+        return {"db": "error"}

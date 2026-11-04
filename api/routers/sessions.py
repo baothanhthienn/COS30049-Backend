@@ -2,7 +2,7 @@ import json
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 import sqlalchemy as sa
 from sqlalchemy import delete, func, select
@@ -139,8 +139,8 @@ class HistoryResponse(BaseModel):
 )
 async def history(
     session_id: uuid.UUID,
-    limit: int = 20,
-    offset: int = 0,
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
     q: str | None = None,
     db: AsyncSession = Depends(get_db),
 ):
