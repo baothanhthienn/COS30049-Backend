@@ -452,6 +452,48 @@ identical model metrics, and identical cluster membership counts.
 
 ---
 
+## Security
+
+### §2.3 Security Hygiene
+
+| Measure | Implementation |
+|---|---|
+| CORS exact allowlist | `allow_origins` set to Vercel URL + `http://localhost:5173`; no `*` |
+| Pydantic max_length | `text` field capped at 10,000 characters; 422 on violation |
+| Body size cap | `max_body_bytes = 1 048 576` (1 MiB); 413 on excess via ASGI middleware |
+| Secrets in env | `API_KEY`, `DATABASE_URL` read from env vars; never hardcoded |
+
+### §2.7 Defences
+
+**DoS (Advanced):** `ThreadPoolExecutor` + `asyncio.Semaphore(10)` limits concurrent ML inference calls; excess requests return HTTP 503 immediately, keeping the event loop responsive under load.
+
+**SQLi (Intermediate):** All queries use the SQLAlchemy ORM. The only user-controlled string in a query is the `?q=` history search parameter, which is passed as a bound parameter to `ilike(f"%{q}%")`; no string interpolation into SQL.
+
+| Risk | Attack succeeds without defence | Attack fails with defence |
+|---|---|---|
+| DoS | Concurrent ML calls block event loop → 30 s timeouts | Semaphore rejects overflow with 503 in < 1 ms |
+| SQLi | `'; DROP TABLE sessions; --` appended to `?q=` | ORM treats the entire string as a literal value; query returns 0 rows |
+
+### §2.8 Detection Evasion
+
+Measured 4 Unicode obfuscation techniques (300 iterations each) with and without the 5-stage preprocessing pipeline (`NORMALISE` env var). Results show the pipeline neutralises most evasion.
+
+| Attack kind | Evasion rate (NORMALISE=off) | Evasion rate (NORMALISE=on) | Reduction |
+|---|---|---|---|
+| Homoglyph (Cyrillic lookalikes) | 30.2% | 10.0% | −67% |
+| Zero-width insertion (U+200B) | 18.4% | 2.2% | −88% |
+| Fullwidth ASCII (ａ–ｚ) | 30.2% | 10.0% | −67% |
+| Leetspeak (4→a, 3→e …) | 20.7% | 0.0% | −100% |
+| **Average** | **24.9%** | **5.6%** | **−77%** |
+
+The residual 5.6% after the defence is an honest limitation: feature extraction runs on the original text (before `decoded_text` is produced), so heavily-mutated prompts can still partially evade the keyword and regex features. Full defence would require running feature extraction on the decoded text.
+
+**Methodology:** `attacks/measure_evasion.py` — 4 attack kinds × 300 iterations × 10 seed prompts (cycling), 2 runs (before/after). Results saved to `attacks/results/evasion_before.json` and `attacks/results/evasion_after.json`. Chart at `attacks/results/evasion_comparison.png`.
+
+**References:** Boucher et al. (2022). *Bad Characters: Imperceptible NLP Attacks*. IEEE S&P 2022. Unicode TR39 §5 (Confusable Characters). OWASP A03 Injection.
+
+---
+
 ## License
 
 MIT (see `LICENSE`).
