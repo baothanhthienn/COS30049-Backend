@@ -84,6 +84,13 @@ def _apply_narrative_frame_boost(prob_injection: float, features: FeatureVector)
     return prob_injection, False
 
 
+def _apply_keyword_hard_boost(prob: float, features: FeatureVector) -> tuple[float, bool]:
+    keyword_hits = features.f01_override_keyword_count + features.f02_role_swap_keyword_count + features.f04_filter_bypass_count
+    if keyword_hits >= 1.0 and prob < 0.90:
+        return max(prob, 0.90), True
+    return prob, False
+
+
 def predict(text: str) -> dict:
     ensure_loaded()
 
@@ -92,6 +99,8 @@ def predict(text: str) -> dict:
 
     prob_injection = float(_best_model.predict_proba(X)[0, 1])
     prob_injection, boosted = _apply_narrative_frame_boost(prob_injection, features)
+    if not boosted:
+        prob_injection, boosted = _apply_keyword_hard_boost(prob_injection, features)
 
     label = 1 if prob_injection >= VERDICT_THRESHOLD else 0
     verdict = "BLOCK" if label == 1 else "ALLOW"
