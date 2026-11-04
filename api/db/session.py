@@ -36,5 +36,4 @@ async def get_db():
 
 
 async def dispose_engine():
-    """Call during lifespan shutdown so Railway SIGTERM drains the connection pool cleanly."""
     await engine.dispose()

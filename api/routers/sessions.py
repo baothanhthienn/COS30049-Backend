@@ -1,7 +1,7 @@
 import json
 import uuid
 from collections import Counter
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -9,10 +9,108 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.auth import require_api_key
-from api.db.models import Classification
+from api.db.models import Classification, Session
 from api.db.session import get_db
 
 router = APIRouter(dependencies=[Depends(require_api_key)])
+
+
+class SessionMeta(BaseModel):
+    id: uuid.UUID
+    created_at: datetime
+    updated_at: datetime
+    preview: str
+    last_verdict: str | None
+
+
+class UpsertSessionRequest(BaseModel):
+    id: uuid.UUID
+    preview: str = ""
+
+
+class PatchSessionRequest(BaseModel):
+    preview: str | None = None
+    last_verdict: str | None = None
+
+
+@router.get(
+    "/api/sessions",
+    response_model=list[SessionMeta],
+    summary="List all sessions ordered by most recent first",
+)
+async def list_sessions(db: AsyncSession = Depends(get_db)):
+    rows_q = await db.execute(
+        select(Session).order_by(Session.created_at.desc()).limit(100)
+    )
+    return [
+        SessionMeta(
+            id=r.id,
+            created_at=r.created_at,
+            updated_at=r.updated_at,
+            preview=r.preview,
+            last_verdict=r.last_verdict,
+        )
+        for r in rows_q.scalars().all()
+    ]
+
+
+@router.post(
+    "/api/sessions",
+    response_model=SessionMeta,
+    status_code=201,
+    summary="Create or return an existing session",
+)
+async def upsert_session(req: UpsertSessionRequest, db: AsyncSession = Depends(get_db)):
+    existing = await db.get(Session, req.id)
+    if existing:
+        return SessionMeta(
+            id=existing.id,
+            created_at=existing.created_at,
+            updated_at=existing.updated_at,
+            preview=existing.preview,
+            last_verdict=existing.last_verdict,
+        )
+    now = datetime.now(timezone.utc)
+    session = Session(id=req.id, preview=req.preview[:80], created_at=now, updated_at=now)
+    db.add(session)
+    await db.commit()
+    await db.refresh(session)
+    return SessionMeta(
+        id=session.id,
+        created_at=session.created_at,
+        updated_at=session.updated_at,
+        preview=session.preview,
+        last_verdict=session.last_verdict,
+    )
+
+
+@router.patch(
+    "/api/sessions/{session_id}",
+    response_model=SessionMeta,
+    summary="Update session preview or last_verdict",
+)
+async def patch_session(
+    session_id: uuid.UUID,
+    req: PatchSessionRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    session = await db.get(Session, session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+    if req.preview is not None:
+        session.preview = req.preview[:80]
+    if req.last_verdict is not None:
+        session.last_verdict = req.last_verdict
+    session.updated_at = datetime.now(timezone.utc)
+    await db.commit()
+    await db.refresh(session)
+    return SessionMeta(
+        id=session.id,
+        created_at=session.created_at,
+        updated_at=session.updated_at,
+        preview=session.preview,
+        last_verdict=session.last_verdict,
+    )
 
 class HistoryItem(BaseModel):
     id: uuid.UUID
@@ -193,12 +291,13 @@ async def trend(session_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
 @router.delete(
     "/api/sessions/{session_id}",
     status_code=204,
-    summary="Delete all records for a session",
+    summary="Delete a session and all its classifications",
 )
 async def delete_session(session_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(
+    await db.execute(
         delete(Classification).where(Classification.session_id == session_id)
     )
-    if result.rowcount == 0:
-        raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+    session = await db.get(Session, session_id)
+    if session:
+        await db.delete(session)
     await db.commit()
