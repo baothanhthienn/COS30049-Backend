@@ -46,12 +46,24 @@ def log_response(
     else:
         _logger.info(msg, *args)
 
+import re as _re
+
 _BUILTIN_ORIGINS = {
     "https://cos-30049-frontend.vercel.app",
     "http://localhost:5173",
     "http://localhost:3000",
 }
-_origins = list(_BUILTIN_ORIGINS | {o.strip() for o in settings.cors_origin.split(",") if o.strip()})
+_env_origins = {o.strip() for o in settings.cors_origin.split(",") if o.strip()}
+_origins = list(_BUILTIN_ORIGINS | _env_origins)
+
+# Accept all Vercel preview deployments for this project (hash changes per deploy)
+_VERCEL_PREVIEW_RE = _re.compile(
+    r'^https://cos-30049-frontend-[a-z0-9]+-[a-z0-9-]+\.vercel\.app$'
+)
+
+
+def _is_allowed_origin(origin: str) -> bool:
+    return origin in _BUILTIN_ORIGINS or origin in _env_origins or bool(_VERCEL_PREVIEW_RE.match(origin))
 
 
 @asynccontextmanager
@@ -92,6 +104,7 @@ if settings.is_hosted:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_origins,
+    allow_origin_regex=r'^https://cos-30049-frontend-[a-z0-9]+-[a-z0-9-]+\.vercel\.app$',
     allow_credentials=True,
     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization", "X-API-Key"],

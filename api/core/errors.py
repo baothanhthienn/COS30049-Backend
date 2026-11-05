@@ -1,4 +1,5 @@
 import logging
+import re
 import uuid
 
 from fastapi import Request
@@ -16,15 +17,18 @@ _ALLOWED_ORIGINS = {
     "http://localhost:3000",
 } | {o.strip() for o in settings.cors_origin.split(",") if o.strip()}
 
+_VERCEL_PREVIEW_RE = re.compile(
+    r'^https://cos-30049-frontend-[a-z0-9]+-[a-z0-9-]+\.vercel\.app$'
+)
+
 
 def _envelope(code: str, message: str) -> dict:
     return {"error": {"code": code, "message": message, "reference_id": str(uuid.uuid4())}}
 
 
 def _cors_headers(request: Request) -> dict:
-    """Add CORS headers to error responses so they are not blocked by the browser."""
     origin = request.headers.get("origin", "")
-    if origin in _ALLOWED_ORIGINS:
+    if origin in _ALLOWED_ORIGINS or _VERCEL_PREVIEW_RE.match(origin):
         return {
             "Access-Control-Allow-Origin": origin,
             "Access-Control-Allow-Credentials": "true",
