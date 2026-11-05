@@ -70,9 +70,6 @@ def predict_family(
     raw = _signal_scores(f)
     family_scores = _softmax(raw)
 
-    if f[4] > 0 or f[9] > 0.2 or f[5] >= 2 or f[6] >= 1 or f[7] > 0.3:
-        return "encoding_obfuscation", family_scores
-
     if spans:
         span_family = _best_span_family(spans)
         if span_family:
@@ -81,6 +78,9 @@ def predict_family(
     top_family = max(raw, key=lambda k: raw[k])
     if raw[top_family] >= 1.5:
         return top_family, family_scores
+
+    if top_family == "encoding_obfuscation" and (f[4] > 0 or f[9] > 0.5 or f[5] >= 3 or f[7] > 0.5):
+        return "encoding_obfuscation", family_scores
 
     if f[15] > 0.10:
         return "delimiter_escape", family_scores
