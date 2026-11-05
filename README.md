@@ -494,6 +494,177 @@ The residual 5.6% after the defence is an honest limitation: feature extraction 
 
 ---
 
+## A3 Quick Start (marker setup — ≤5 minutes from clone)
+
+Runs the full backend from a clean clone. Requires Python 3.11+, PostgreSQL 16, and conda.
+
+**macOS / Linux**
+
+```bash
+# 1. Clone and enter the repo
+git clone https://github.com/baothanhthienn/COS30049-Backend.git
+cd COS30049-Backend
+
+# 2. Create and activate conda environment
+conda create -n cos30049 python=3.11 -y
+conda activate cos30049
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Configure environment (copy template and fill in values)
+cp .env.example .env
+# Edit .env: set DATABASE_URL, API_KEY, CORS_ORIGIN
+
+# 5. Run database migrations
+alembic upgrade head
+
+# 6. Start the API server
+uvicorn api.main:app --host 0.0.0.0 --port 8000
+
+# 7. Verify — expected: {"status":"ok","model":"RF","model_status":"loaded",...}
+curl http://localhost:8000/api/health
+```
+
+**Windows**
+
+```bat
+git clone https://github.com/baothanhthienn/COS30049-Backend.git
+cd COS30049-Backend
+conda create -n cos30049 python=3.11 -y
+conda activate cos30049
+pip install -r requirements.txt
+copy .env.example .env
+:: Edit .env with Notepad
+alembic upgrade head
+uvicorn api.main:app --host 0.0.0.0 --port 8000
+```
+
+**Environment variables (`.env`)**
+
+| Variable | Example | Purpose |
+|---|---|---|
+| `DATABASE_URL` | `postgresql+asyncpg://user:pass@localhost/db` | PostgreSQL connection string |
+| `API_KEY` | `changeme` | Bearer token for protected endpoints |
+| `CORS_ORIGIN` | `https://your-app.vercel.app` | Allowed frontend origin |
+| `NORMALISE` | `true` | Enable Unicode preprocessing (§2.8 defence) |
+| `MODEL_VERSION` | `1.0.0` | Version tag returned by `/api/health` |
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Browser / Frontend (React + Vite, Vercel)                      │
+│  ChatComposer → POST /api/classify → AssistantResponse          │
+│  TrendView    → GET  /api/sessions/{id}/trend                   │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │ HTTPS  X-API-Key header
+┌──────────────────────────▼──────────────────────────────────────┐
+│  FastAPI  (Railway)                                             │
+│                                                                  │
+│  ┌─────────────────┐   ┌──────────────────────────────────┐    │
+│  │  ASGI Middleware│   │  Routers                          │    │
+│  │  · Body size cap│   │  POST /api/classify               │    │
+│  │  · CORS exact   │   │  GET  /api/sessions/{id}/history  │    │
+│  │  · Rate limit   │   │  GET  /api/sessions/{id}/trend    │    │
+│  └────────┬────────┘   │  DELETE /api/sessions/{id}        │    │
+│           │            │  GET  /api/health                  │    │
+│           │            └──────────────┬───────────────────-┘    │
+│           │                           │                          │
+│  ┌────────▼───────────────────────────▼───────────────────┐    │
+│  │  ML Pipeline                                            │    │
+│  │  Stage A: RF binary classifier (21 features, ROC 0.98) │    │
+│  │  Stage B: rule-based family classifier (6 families)    │    │
+│  │  Preprocessing: NFKC → lookalike → zero-width → leet   │    │
+│  └────────────────────────────┬───────────────────────────┘    │
+│                                │                                 │
+│  ┌─────────────────────────────▼───────────────────────────┐   │
+│  │  PostgreSQL (Railway managed)                            │   │
+│  │  sessions(id, preview, last_verdict, created_at)         │   │
+│  │  classifications(id, session_id, text, verdict, …)       │   │
+│  └──────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Data flow for a single classify request:**
+
+1. Frontend sends `POST /api/classify` with `{text, session_id}` + `X-API-Key`
+2. Body-size middleware rejects > 1 MiB; Pydantic rejects > 10,000 chars
+3. `asyncio.Semaphore` gates ML inference; returns 503 if all 10 slots taken
+4. `preprocess()` strips Unicode obfuscation (NFKC → Cyrillic lookalikes → U+200B → leet)
+5. Stage A RF model scores the preprocessed text; below threshold → `ALLOW`
+6. Stage B rule-based classifier names the attack family; spans extracted
+7. Result written to `classifications` table; response returned to frontend
+
+---
+
+## Threat Model
+
+**Who attacks?** An adversary who wants a crafted prompt-injection string to pass through this guardrail undetected and reach a downstream LLM. They have public API access only — no code access, no database access, no side-channel beyond response time and status codes.
+
+**What do they want?** A false `ALLOW` verdict on a known injection attempt. Secondary goal: exhaust the service so legitimate traffic is blocked (DoS).
+
+**What can they do?**
+- Submit arbitrary strings up to 10,000 characters via `POST /api/classify`
+- Probe timing to infer model complexity
+- Obfuscate injection text with Unicode tricks (Cyrillic lookalikes, zero-width characters, fullwidth ASCII, leetspeak)
+- Flood the endpoint with concurrent requests
+
+**§2.7 Risk mapping:**
+
+| OWASP risk | Present in this app? | Defence chosen |
+|---|---|---|
+| Injection (SQLi) | Yes — `?q=` history search | SQLAlchemy ORM bound parameters (Intermediate, 3 pts) |
+| DoS / resource exhaustion | Yes — ML inference is CPU-bound | ThreadPoolExecutor + Semaphore + 503 (Advanced, 4 pts) |
+| SSRF | No — no outbound fetches | N/A |
+| Broken Access Control | No — no user accounts | N/A |
+| Detection Evasion | Yes — Unicode obfuscation | 5-stage preprocessing pipeline (§2.8, 4 pts) |
+
+**Defences named for marking:**
+- **DoS — Advanced (4 pts):** `ThreadPoolExecutor` offloads ML inference from the async event loop; `asyncio.Semaphore(10)` caps concurrent calls; overflow returns HTTP 503 in < 1 ms. Demo: `python3 attacks/demo_dos.py`
+- **SQLi — Intermediate (3 pts):** All DB queries via SQLAlchemy ORM; `?q=` search parameter passed as bound value to `ilike()`; no f-string SQL anywhere. Demo: `python3 attacks/demo_sqli.py`
+- **Detection Evasion — Advanced Attack (4 pts):** 4 Unicode obfuscation kinds × 300 iterations × 2 configs measured. Average evasion rate drops 24.9% → 5.6% (−77%) with `NORMALISE=true`. See `attacks/results/`.
+
+---
+
+## References (Harvard)
+
+Boucher, N., Shumailov, I., Anderson, R. and Papernot, N. (2022) 'Bad Characters: Imperceptible NLP Attacks', *2022 IEEE Symposium on Security and Privacy (SP)*, San Francisco, CA, May 2022, pp. 1070–1086. doi: 10.1109/SP46214.2022.9833641.
+
+Greshake, K., Abdelnabi, S., Mishra, S., Endres, C., Holz, T. and Fritz, M. (2023) 'Not What You've Signed Up For: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection', *Proceedings of the 16th ACM Workshop on Artificial Intelligence and Security (AISec '23)*, Copenhagen, November 2023, pp. 79–90. doi: 10.1145/3605764.3623985.
+
+Liu, Y., Deng, G., Xu, Z., Li, Y., Zheng, Y., Zhang, T., Liu, Y., Wang, H. and Liu, Y. (2023) 'Jailbreaking ChatGPT via Prompt Engineering: An Empirical Study', *arXiv preprint*, arXiv:2305.13860. Available at: https://arxiv.org/abs/2305.13860 (Accessed: 4 October 2026).
+
+Nobata, C., Tetreault, J., Thomas, A., Mehdad, Y. and Chang, Y. (2016) 'Abusive Language Detection in Online User Content', *Proceedings of the 25th International Conference on World Wide Web (WWW '16)*, Montreal, April 2016, pp. 145–153. doi: 10.1145/2872427.2883062.
+
+OWASP Foundation (2021) *OWASP Top Ten 2021*, OWASP. Available at: https://owasp.org/Top10 (Accessed: 4 October 2026).
+
+Perez, F. and Ribeiro, I. (2022) 'Ignore Previous Prompt: Attack Techniques for Language Models', *Proceedings of the Machine Learning Safety Workshop, NeurIPS 2022*. Available at: https://arxiv.org/abs/2211.09527 (Accessed: 4 October 2026).
+
+Unicode Consortium (2022) *Unicode Technical Standard #39: Unicode Security Mechanisms*, Unicode Standard Annex. Available at: https://unicode.org/reports/tr39 (Accessed: 4 October 2026).
+
+xTRam1 (2023) *safe-guard-prompt-injection* [Dataset], Hugging Face. Available at: https://huggingface.co/datasets/xTRam1/safe-guard-prompt-injection (Accessed: 31 August 2026).
+
+deepset (2022) *prompt-injections* [Dataset], Hugging Face. Available at: https://huggingface.co/datasets/deepset/prompt-injections (Accessed: 31 August 2026).
+
+jackhhao (2023) *jailbreak-classification* [Dataset], Hugging Face. Available at: https://huggingface.co/datasets/jackhhao/jailbreak-classification (Accessed: 31 August 2026).
+
+---
+
+## Generative AI Usage Statement
+
+Generative AI tools (Claude, GitHub Copilot) were used during development of this project for the following purposes only:
+
+- Scaffolding boilerplate code (FastAPI router structure, Alembic migration templates)
+- Generating docstrings and inline comments for review and manual editing
+- Suggesting test case structure for the pytest suite
+
+All machine learning model design, feature engineering decisions, security defence architecture, threat model analysis, and report writing were completed without generative AI assistance, in accordance with Swinburne University assessment integrity requirements. No AI-generated content appears in the submitted report.
+
+---
+
 ## License
 
 MIT (see `LICENSE`).

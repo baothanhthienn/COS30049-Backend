@@ -147,7 +147,22 @@ async def upsert_session(req: UpsertSessionRequest, db: AsyncSession = Depends(g
                     }
                 }
             }
-        }
+        },
+        "responses": {
+            "200": {
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                            "created_at": "2024-01-15T10:30:00Z",
+                            "updated_at": "2024-01-15T10:40:00Z",
+                            "preview": "Updated preview text",
+                            "last_verdict": "BLOCK",
+                        }
+                    }
+                }
+            }
+        },
     },
 )
 async def patch_session(
@@ -315,6 +330,39 @@ class TrendResponse(BaseModel):
         "total/blocked/benign counts, top attack family, rolling block rate "
         "(last 10 requests), and a full family breakdown ranked by frequency."
     ),
+    openapi_extra={
+        "responses": {
+            "200": {
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "session_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                            "points": [
+                                {
+                                    "id": "a1b2c3d4-0000-0000-0000-000000000001",
+                                    "created_at": "2024-01-15T10:35:00Z",
+                                    "verdict": "BLOCK",
+                                    "confidence": 0.9770,
+                                    "attack_family": "instruction_override",
+                                }
+                            ],
+                            "summary": {
+                                "total": 10,
+                                "blocked": 7,
+                                "benign": 3,
+                                "top_family": "instruction_override",
+                                "block_rate_rolling": 0.7,
+                                "family_breakdown": [
+                                    {"family": "instruction_override", "count": 5},
+                                    {"family": "role_play_jailbreak", "count": 2},
+                                ],
+                            },
+                        }
+                    }
+                }
+            }
+        }
+    },
 )
 async def trend(session_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
     points_q = await db.execute(
