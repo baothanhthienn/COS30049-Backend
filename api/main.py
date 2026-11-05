@@ -9,6 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+import subprocess
+
 from api import model_loader
 from api.core.config import settings
 from api.core.errors import (
@@ -75,6 +77,17 @@ async def lifespan(_: FastAPI):
         _logger.info("Model loaded: %s", model_loader.get_best_model_name())
     except Exception as exc:
         _logger.error("Model load failed (classify will be unavailable): %s", exc)
+    try:
+        result = subprocess.run(
+            ["alembic", "upgrade", "head"],
+            capture_output=True, text=True, timeout=60,
+        )
+        if result.returncode == 0:
+            _logger.info("Alembic migrations applied: %s", result.stdout.strip() or "up to date")
+        else:
+            _logger.error("Alembic migration failed: %s", result.stderr.strip())
+    except Exception as exc:
+        _logger.error("Alembic migration error: %s", exc)
     try:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
