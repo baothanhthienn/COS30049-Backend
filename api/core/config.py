@@ -10,7 +10,9 @@ class Settings(BaseSettings):
     cors_origin: str = "http://localhost:5173"
     model_version: str = "v0.1.0"
     model_dir: str = "models/"
-    api_key: str = ""  
+    api_key: str = ""
+    groq_api_key: str = ""
+    groq_model: str = "llama-3.3-70b-versatile"
     rate_limit_per_minute: int = 60
     inference_concurrency: int = 10
     max_body_bytes: int = 1_048_576

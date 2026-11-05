@@ -19,11 +19,32 @@ from api.core.errors import (
 from api.db.session import dispose_engine, engine
 from api.db import models as _models  # noqa: F401 — registers tables on Base.metadata
 from api.db.session import Base
-from api.routers import classify, health, sessions
+from api.routers import chat, classify, health, sessions
 
 _logger = logging.getLogger(__name__)
 
 _rate_buckets: dict[str, list[float]] = defaultdict(list)
+
+
+def log_response(
+    method: str,
+    path: str,
+    status: int,
+    duration_ms: float,
+    extra: dict | None = None,
+) -> None:
+    """Log an HTTP response. Call from any middleware or route handler."""
+    msg = "%s %s → %d (%.1fms)"
+    args: list = [method, path, status, duration_ms]
+    if extra:
+        msg += " | %s"
+        args.append(" ".join(f"{k}={v}" for k, v in extra.items()))
+    if status >= 500:
+        _logger.error(msg, *args)
+    elif status >= 400:
+        _logger.warning(msg, *args)
+    else:
+        _logger.info(msg, *args)
 
 _BUILTIN_ORIGINS = {
     "https://cos-30049-frontend.vercel.app",
@@ -78,6 +99,19 @@ app.add_middleware(
 
 
 @app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = time.monotonic()
+    response = await call_next(request)
+    log_response(
+        request.method,
+        request.url.path,
+        response.status_code,
+        (time.monotonic() - start) * 1000,
+    )
+    return response
+
+
+@app.middleware("http")
 async def security_headers(request: Request, call_next):
     response = await call_next(request)
     if "server" in response.headers:
@@ -124,6 +158,7 @@ app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, unhandled_exception_handler)
 
+app.include_router(chat.router)
 app.include_router(classify.router)
 app.include_router(sessions.router)
 app.include_router(health.router)
