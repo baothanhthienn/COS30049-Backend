@@ -114,18 +114,6 @@ async def chat(req: ChatRequest, db: AsyncSession = Depends(get_db)):
     async with sem:
         result = await loop.run_in_executor(_executor, pipeline.run, req.message)
 
-    record = Classification(
-        session_id=req.session_id,
-        text=req.message,
-        verdict=result["verdict"],
-        confidence=result["confidence"],
-        attack_family=result["attack_family"],
-        family_scores=json.dumps(result["family_scores"]),
-        model_version=settings.model_version,
-    )
-    db.add(record)
-    await db.commit()
-    await db.refresh(record)
     blocked_reason: str | None = None
 
     try:
@@ -148,6 +136,20 @@ async def chat(req: ChatRequest, db: AsyncSession = Depends(get_db)):
     except Exception as exc:
         _logger.error("Groq API call failed: %s: %s", type(exc).__name__, exc, exc_info=True)
         raise HTTPException(status_code=502, detail=f"LLM service error: {type(exc).__name__}: {exc}") from exc
+
+    record = Classification(
+        session_id=req.session_id,
+        text=req.message,
+        verdict=result["verdict"],
+        confidence=result["confidence"],
+        attack_family=result["attack_family"],
+        family_scores=json.dumps(result["family_scores"]),
+        model_version=settings.model_version,
+        reply=reply,
+    )
+    db.add(record)
+    await db.commit()
+    await db.refresh(record)
 
     return ChatResponse(
         id=record.id,

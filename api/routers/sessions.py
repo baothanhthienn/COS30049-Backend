@@ -199,6 +199,7 @@ class HistoryItem(BaseModel):
     attack_family: str | None
     family_scores: dict[str, float]
     model_version: str
+    reply: str | None
 
 
 class HistoryResponse(BaseModel):
@@ -282,6 +283,7 @@ async def history(
             attack_family=r.attack_family,
             family_scores=json.loads(r.family_scores) if r.family_scores else {},
             model_version=r.model_version,
+            reply=r.reply,
         )
         for r in rows
     ]

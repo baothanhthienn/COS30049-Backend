@@ -40,6 +40,7 @@ class Classification(Base):
     attack_family: Mapped[str | None] = mapped_column(String(64), nullable=True)
     family_scores: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON blob
     model_version: Mapped[str] = mapped_column(String(32), nullable=False)
+    reply: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     __table_args__ = (
         Index("ix_classifications_session_created", "session_id", "created_at"),
