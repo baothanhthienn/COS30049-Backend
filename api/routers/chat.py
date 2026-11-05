@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from typing import Literal
@@ -8,6 +9,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from groq import Groq
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
+
+_logger = logging.getLogger(__name__)
 
 from api.core.auth import require_api_key
 from api.core.config import settings
@@ -143,7 +146,8 @@ async def chat(req: ChatRequest, db: AsyncSession = Depends(get_db)):
             blocked_reason = await loop.run_in_executor(_executor, _groq_chat, client, messages)
             reply = f"Your message was blocked. {blocked_reason}"
     except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"LLM service error: {type(exc).__name__}") from exc
+        _logger.error("Groq API call failed: %s: %s", type(exc).__name__, exc, exc_info=True)
+        raise HTTPException(status_code=502, detail=f"LLM service error: {type(exc).__name__}: {exc}") from exc
 
     return ChatResponse(
         id=record.id,
