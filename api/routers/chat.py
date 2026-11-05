@@ -101,6 +101,7 @@ def _build_block_explanation(attack_family: str | None, family_scores: dict, con
     ),
 )
 async def chat(req: ChatRequest, db: AsyncSession = Depends(get_db)):
+
     sem = _get_semaphore()
     if sem._value <= 0:
         raise HTTPException(status_code=503, detail="Server busy — too many concurrent requests")
@@ -121,8 +122,6 @@ async def chat(req: ChatRequest, db: AsyncSession = Depends(get_db)):
     db.add(record)
     await db.commit()
     await db.refresh(record)
-
-    client = _get_groq_client()
     blocked_reason: str | None = None
 
     try:
