@@ -3,6 +3,7 @@ import math
 _SPAN_TO_FAMILY: dict[str, str] = {
     "instruction_override": "instruction_override",
     "role_swap":            "role_play_jailbreak",
+    "role_play_jailbreak":  "role_play_jailbreak", 
     "narrative_frame":      "role_play_jailbreak",
     "data_exfiltration":    "context_exfiltration",
     "filter_bypass":        "delimiter_escape",
@@ -39,9 +40,9 @@ def _signal_scores(f: list[float]) -> dict[str, float]:
             + min(f[16], 5) * 0.3   
         ),
         "indirect_injection": min(10.0,
-            min(f[13], 10) * 0.4    
-            + min(f[14], 20) * 0.2  
-            + min(f[20], 2) * 1.0  
+            min(f[13], 10) * 0.1
+            + min(f[14], 20) * 0.05
+            + min(f[20], 2) * 1.0
         ),
     }
 

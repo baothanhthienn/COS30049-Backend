@@ -269,7 +269,7 @@ def extract_features(processed: ProcessedText) -> FeatureVector:
     dec  = processed.decoded_text
 
     f01 = float(len(_RE_OVERRIDE.findall(dec)))
-    f02 = float(len(_RE_ROLE_SWAP.findall(dec)) + len(_RE_ROLE_SWAP_ACTAS.findall(dec)))
+    f02 = float(len(_RE_ROLE_SWAP.findall(dec)) + len(_RE_ROLE_SWAP_ACTAS.findall(dec)) + len(_RE_HARMFUL_ROLE.findall(dec)))
     f03 = float(len(_RE_DATA_EXFIL.findall(dec)))
     f04 = float(len(_RE_FILTER_BYP.findall(dec)))
 
