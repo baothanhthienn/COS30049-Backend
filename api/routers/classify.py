@@ -124,7 +124,7 @@ async def classify(req: ClassifyRequest, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=503, detail="Server busy — too many concurrent requests")
 
     async with sem:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(_executor, pipeline.run, req.text)
 
     record = Classification(

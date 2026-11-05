@@ -77,7 +77,7 @@ def _groq_chat(client: Groq, messages: list[dict]) -> str:
     return completion.choices[0].message.content or ""
 
 
-def _build_block_explanation(attack_family: str | None, family_scores: dict, decoded_text: str, confidence: float) -> str:
+def _build_block_explanation(attack_family: str | None, family_scores: dict, confidence: float) -> str:
     label = _ATTACK_LABELS.get(attack_family or "", attack_family or "unknown")
     top_scores = sorted(family_scores.items(), key=lambda x: x[1], reverse=True)[:3]
     scores_text = ", ".join(f"{_ATTACK_LABELS.get(k, k)} ({v:.0%})" for k, v in top_scores)
@@ -105,7 +105,7 @@ async def chat(req: ChatRequest, db: AsyncSession = Depends(get_db)):
     if sem._value <= 0:
         raise HTTPException(status_code=503, detail="Server busy — too many concurrent requests")
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     async with sem:
         result = await loop.run_in_executor(_executor, pipeline.run, req.message)
 
@@ -125,23 +125,25 @@ async def chat(req: ChatRequest, db: AsyncSession = Depends(get_db)):
     client = _get_groq_client()
     blocked_reason: str | None = None
 
-    if result["verdict"] == "ALLOW":
-        messages = [
-            {"role": "system", "content": "You are a helpful assistant."},
-            *[{"role": t.role, "content": t.content} for t in req.history[-10:]],
-            {"role": "user", "content": req.message},
-        ]
-        reply = await loop.run_in_executor(_executor, _groq_chat, client, messages)
-    else:
-        system_prompt = _build_block_explanation(
-            result["attack_family"],
-            result["family_scores"],
-            result["decoded_text"],
-            result["confidence"],
-        )
-        messages = [{"role": "system", "content": system_prompt}]
-        blocked_reason = await loop.run_in_executor(_executor, _groq_chat, client, messages)
-        reply = f"⚠️ Your message was blocked. {blocked_reason}"
+    try:
+        if result["verdict"] == "ALLOW":
+            messages = [
+                {"role": "system", "content": "You are a helpful assistant."},
+                *[{"role": t.role, "content": t.content} for t in req.history[-10:]],
+                {"role": "user", "content": req.message},
+            ]
+            reply = await loop.run_in_executor(_executor, _groq_chat, client, messages)
+        else:
+            system_prompt = _build_block_explanation(
+                result["attack_family"],
+                result["family_scores"],
+                result["confidence"],
+            )
+            messages = [{"role": "system", "content": system_prompt}]
+            blocked_reason = await loop.run_in_executor(_executor, _groq_chat, client, messages)
+            reply = f"Your message was blocked. {blocked_reason}"
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"LLM service error: {type(exc).__name__}") from exc
 
     return ChatResponse(
         id=record.id,
