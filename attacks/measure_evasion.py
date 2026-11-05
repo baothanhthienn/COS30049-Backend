@@ -112,13 +112,16 @@ def main() -> None:
         "url": args.url,
         "iterations_per_kind": args.iterations,
         "seed": args.seed,
+        "model_version": None,
         "attack_kinds": {},
+        "fp_rate": None,
     }
 
     with httpx.Client() as client:
         try:
-            health = client.get(f"{args.url}/api/health", timeout=10)
-            health.raise_for_status()
+            health_resp = client.get(f"{args.url}/api/health", timeout=10)
+            health_resp.raise_for_status()
+            results["model_version"] = health_resp.json().get("version", "unknown")
         except Exception as exc:
             print(f"Server health check failed: {exc}", file=sys.stderr)
             sys.exit(1)
@@ -173,6 +176,35 @@ def main() -> None:
                 "evasion_rate": evasion_rate,
                 "rows": rows,
             }
+
+    benign_path = os.path.join(os.path.dirname(__file__), "holdout_benign.json")
+    if os.path.exists(benign_path):
+        print("Measuring false-positive rate on 100 benign non-Latin inputs…")
+        with open(benign_path, encoding="utf-8") as f:
+            benign_items = json.load(f)
+        fp_blocked = 0
+        fp_errors = 0
+        for item in benign_items:
+            try:
+                v = _classify(client, args.url, args.api_key, item["text"])
+                if v == "BLOCK":
+                    fp_blocked += 1
+            except Exception:
+                fp_errors += 1
+        fp_total = len(benign_items) - fp_errors
+        fp_rate = round(fp_blocked / max(fp_total, 1), 4)
+        results["fp_rate"] = {
+            "holdout_size": len(benign_items),
+            "false_positives": fp_blocked,
+            "errors": fp_errors,
+            "fp_rate": fp_rate,
+            "note": (
+                "Fraction of benign non-Latin inputs incorrectly blocked. "
+                "Scripts: French, German, Spanish, Portuguese, Japanese, Chinese, "
+                "Korean, Arabic, Russian, Greek, Hebrew, Hindi."
+            ),
+        }
+        print(f"  False positives: {fp_blocked}/{fp_total}  (FP rate: {fp_rate:.1%})\n")
 
     with open(args.out, "w") as f:
         json.dump(results, f, indent=2)

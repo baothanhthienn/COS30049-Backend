@@ -11,7 +11,6 @@ def main(url: str, session_id: str) -> None:
     print(f"  payload: {SQLI_PAYLOAD!r}\n")
 
     with httpx.Client(timeout=15) as client:
-        # Baseline: count all records without filter
         base = client.get(f"{url}/api/sessions/{session_id}/history", params={"limit": 1})
         if base.status_code == 404:
             print("Session not found — create a few classifications first.")

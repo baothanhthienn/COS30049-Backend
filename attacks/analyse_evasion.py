@@ -1,12 +1,3 @@
-"""
-§2.8 Detection Evasion — analyse before/after JSON results.
-
-Usage:
-  python attacks/analyse_evasion.py \
-    --before attacks/results/evasion_before.json \
-    --after  attacks/results/evasion_after.json \
-    --chart  attacks/results/evasion_comparison.png
-"""
 import argparse
 import json
 
