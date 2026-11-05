@@ -653,6 +653,12 @@ jackhhao (2023) *jailbreak-classification* [Dataset], Hugging Face. Available at
 
 ---
 
+## Accessibility
+
+The React frontend (A3) is designed to be fully operable without a mouse. Every interactive element — the text input, the **Classify** button, the session list, and the results history table — is reachable and activatable using the keyboard alone. Users can Tab through controls in document order, press Enter or Space to activate buttons, and navigate paginated history rows with the arrow keys. Focus indicators remain visible at all times; they are never suppressed with `outline: none` without an accessible replacement. Screen-reader users receive verdict outcomes via `aria-live` regions so that classification results are announced without requiring focus movement. The colour-contrast ratios for the MEMBRANE dark theme meet WCAG 2.1 AA minimums (≥4.5:1 for normal text, ≥3:1 for large text and UI components).
+
+---
+
 ## Generative AI Usage Statement
 
 Generative AI tools (Claude, GitHub Copilot) were used during development of this project for the following purposes only:

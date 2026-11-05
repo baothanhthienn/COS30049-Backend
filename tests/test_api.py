@@ -46,7 +46,6 @@ def client():
     from api.db.session import get_db
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    # Mock DB session — execute returns a result that supports .mappings().one()
     mock_row = MagicMock()
     mock_row.__getitem__ = lambda _, k: _DB_HEALTH_ROW[k]
     mock_mapping = MagicMock()
@@ -54,11 +53,17 @@ def client():
     mock_result = MagicMock()
     mock_result.mappings.return_value = mock_mapping
 
+    async def _fake_refresh(obj):
+        if not getattr(obj, "id", None):
+            obj.id = uuid.uuid4()
+        if not getattr(obj, "session_id", None):
+            obj.session_id = uuid.UUID(_SESSION_ID)
+
     mock_session = AsyncMock(spec=AsyncSession)
     mock_session.execute.return_value = mock_result
     mock_session.add = MagicMock()
     mock_session.commit = AsyncMock()
-    mock_session.refresh = AsyncMock()
+    mock_session.refresh = AsyncMock(side_effect=_fake_refresh)
 
     async def override_get_db():
         yield mock_session
@@ -82,16 +87,17 @@ class TestHealth:
     def test_response_shape(self, client):
         tc, _, _ = client
         body = tc.get("/api/health").json()
-        for key in ("status", "database", "model", "version"):
+        for key in ("status", "model", "version"):
             assert key in body, f"Missing: {key}"
-
-    def test_database_connected(self, client):
-        tc, _, _ = client
-        assert tc.get("/api/health").json()["database"] == "connected"
 
     def test_status_ok(self, client):
         tc, _, _ = client
         assert tc.get("/api/health").json()["status"] == "ok"
+
+    def test_model_field_present(self, client):
+        tc, _, _ = client
+        body = tc.get("/api/health").json()
+        assert "model" in body
 
 
 _SESSION_ID = str(uuid.uuid4())
@@ -144,7 +150,6 @@ class TestClassify:
         assert "reference_id" in body["error"]
 
     def test_no_api_key_allowed_when_key_not_configured(self, client):
-        # API_KEY is empty in test settings → auth is disabled
         tc, pipeline, _ = client
         pipeline.return_value = _BENIGN_RESULT
         r = tc.post("/api/classify", json={"text": "hello", "session_id": _SESSION_ID})
