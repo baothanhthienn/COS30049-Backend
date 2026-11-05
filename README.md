@@ -618,8 +618,9 @@ uvicorn api.main:app --host 0.0.0.0 --port 8000
 |---|---|---|
 | Injection (SQLi) | Yes — `?q=` history search | SQLAlchemy ORM bound parameters (Intermediate, 3 pts) |
 | DoS / resource exhaustion | Yes — ML inference is CPU-bound | ThreadPoolExecutor + Semaphore + 503 (Advanced, 4 pts) |
-| SSRF | No — no outbound fetches | N/A |
-| Broken Access Control | No — no user accounts | N/A |
+| SSRF | No — app makes no outbound HTTP requests; classifier runs fully local | N/A |
+| Broken Access Control | No — no user accounts; session identity is a client-generated UUID with no privilege model | N/A |
+| XSS | No — React escapes all user-controlled output; `dangerouslySetInnerHTML` is banned by lint rule | N/A |
 | Detection Evasion | Yes — Unicode obfuscation | 5-stage preprocessing pipeline (§2.8, 4 pts) |
 
 **Defences named for marking:**
