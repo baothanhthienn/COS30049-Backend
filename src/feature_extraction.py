@@ -51,7 +51,6 @@ _ROLE_SWAP_ACT_AS_QUALIFIED = [
     r"\b(has\s+no|have\s+no|without\s+any)\s+(ethical\s+)?(constraints?|rules?|guidelines?|restrictions?|limits?)\b",
 ]
 _HARMFUL_ROLE_PHRASES = [
-    # criminal roles
     r"\b(pretend|act|imagine|play|be)\s+(you\s+are\s+|as\s+)?(a\s+|an\s+)?"
     r"(robber|thief|burglar|mugger|carjacker|pickpocket|shoplifter|criminal|"
     r"murderer|killer|hitman|assassin|serial\s+killer|"
@@ -137,7 +136,7 @@ _ZERO_WIDTH_SET = set('​‌‍‎‏⁠⁡⁢⁣⁤﻿­')
 
 _LEET_CHARS = set('4@310057$!+|')   
 
-_B64_RE = re.compile(r'[A-Za-z0-9+/]{8,}={0,2}')
+_B64_RE = re.compile(r'(?:[A-Za-z0-9+/]{8,}={1,2}|[A-Za-z0-9/]{4,}[+/][A-Za-z0-9+/]{4,})')
 
 _SENTENCE_SPLIT_RE = re.compile(r'[.!?]+')
 
