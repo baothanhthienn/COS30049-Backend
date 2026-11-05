@@ -140,7 +140,7 @@ async def limit_body_size(request: Request, call_next):
 
 @app.middleware("http")
 async def rate_limit(request: Request, call_next):
-    if request.method == "POST" and request.url.path == "/api/classify":    
+    if request.method == "POST" and request.url.path in ("/api/classify", "/api/chat"):
         api_key_val = request.headers.get("x-api-key") or request.headers.get("X-API-Key")
         bucket_key = f"key:{api_key_val}" if api_key_val else f"ip:{request.client.host if request.client else 'unknown'}"
         now = time.monotonic()

@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
+from typing import Literal
 import sqlalchemy as sa
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,7 +31,7 @@ class UpsertSessionRequest(BaseModel):
 
 class PatchSessionRequest(BaseModel):
     preview: str | None = None
-    last_verdict: str | None = None
+    last_verdict: Literal["ALLOW", "BLOCK"] | None = None
 
 
 @router.get(

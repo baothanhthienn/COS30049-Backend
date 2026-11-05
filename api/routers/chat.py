@@ -2,6 +2,7 @@ import asyncio
 import json
 import uuid
 from concurrent.futures import ThreadPoolExecutor
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException
 from groq import Groq
@@ -17,6 +18,14 @@ from api.ml import pipeline
 router = APIRouter(dependencies=[Depends(require_api_key)])
 
 _executor = ThreadPoolExecutor(max_workers=settings.inference_concurrency)
+_semaphore: asyncio.Semaphore | None = None
+
+
+def _get_semaphore() -> asyncio.Semaphore:
+    global _semaphore
+    if _semaphore is None:
+        _semaphore = asyncio.Semaphore(settings.inference_concurrency)
+    return _semaphore
 
 
 def _get_groq_client() -> Groq:
@@ -35,10 +44,15 @@ _ATTACK_LABELS = {
 }
 
 
+class HistoryTurn(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(..., min_length=1, max_length=10_000)
+
+
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=10_000)
     session_id: uuid.UUID = Field(default_factory=uuid.uuid4)
-    history: list[dict] = Field(default_factory=list, description="Previous turns [{role, content}]")
+    history: list[HistoryTurn] = Field(default_factory=list, max_length=20)
 
 
 class ChatResponse(BaseModel):
@@ -70,9 +84,8 @@ def _build_block_explanation(attack_family: str | None, family_scores: dict, dec
     return (
         f"You are a security assistant explaining why a prompt was blocked by an AI guardrail.\n\n"
         f"The classifier detected a **{label}** attack with {confidence:.0%} confidence.\n"
-        f"Top attack signals: {scores_text}.\n"
-        f"Decoded input: \"{decoded_text[:300]}\"\n\n"
-        f"In 2-3 sentences, explain clearly to the user why this prompt was flagged, "
+        f"Top attack signals: {scores_text}.\n\n"
+        f"In 2-3 sentences, explain clearly to the user why this type of prompt is flagged, "
         f"what the specific threat pattern is, and what a safe alternative would look like."
     )
 
@@ -88,8 +101,13 @@ def _build_block_explanation(attack_family: str | None, family_scores: dict, dec
     ),
 )
 async def chat(req: ChatRequest, db: AsyncSession = Depends(get_db)):
+    sem = _get_semaphore()
+    if sem._value <= 0:
+        raise HTTPException(status_code=503, detail="Server busy — too many concurrent requests")
+
     loop = asyncio.get_event_loop()
-    result = await loop.run_in_executor(_executor, pipeline.run, req.message)
+    async with sem:
+        result = await loop.run_in_executor(_executor, pipeline.run, req.message)
 
     record = Classification(
         session_id=req.session_id,
@@ -110,7 +128,7 @@ async def chat(req: ChatRequest, db: AsyncSession = Depends(get_db)):
     if result["verdict"] == "ALLOW":
         messages = [
             {"role": "system", "content": "You are a helpful assistant."},
-            *req.history[-10:],
+            *[{"role": t.role, "content": t.content} for t in req.history[-10:]],
             {"role": "user", "content": req.message},
         ]
         reply = await loop.run_in_executor(_executor, _groq_chat, client, messages)
