@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     model_dir: str = "models/"
     api_key: str = ""
     groq_api_key: str = ""
-    groq_model: str = "llama-3.3-70b-versatile"
+    groq_model: str = "llama3-70b-8192"
     rate_limit_per_minute: int = 60
     inference_concurrency: int = 10
     max_body_bytes: int = 1_048_576
