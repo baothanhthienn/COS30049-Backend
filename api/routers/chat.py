@@ -101,6 +101,7 @@ def _build_block_explanation(attack_family: str | None, family_scores: dict, con
     ),
 )
 async def chat(req: ChatRequest, db: AsyncSession = Depends(get_db)):
+    client = _get_groq_client()
 
     sem = _get_semaphore()
     if sem._value <= 0:
