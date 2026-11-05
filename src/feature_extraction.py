@@ -8,11 +8,11 @@ from preprocessing import ProcessedText, preprocess
 # Keyword lists 
 
 _OVERRIDE_PHRASES = [
-    
+
     r"ignores?\s+(all\s+)?(previous|prior|above|earlier|system)",
     r"disregards?\s+(all\s+)?(previous|prior|above|earlier|system)",
     r"forgets?\s+(all\s+)?(previous|prior|above|earlier|your)",
-    
+
     r"forget\s+everything\s+(i|you|that)\b",
     r"overrides?\s+(all\s+)?(previous|prior|above|safety|system)",
     r"bypasse?s?\s+(all\s+)?instructions",
@@ -21,6 +21,9 @@ _OVERRIDE_PHRASES = [
     r"pretend\s+(that\s+)?you\s+(have\s+no|don'?t\s+have)",
     r"ignore\s+your\s+(guidelines?|rules?|restrictions?|filters?|training)",
     r"(in\s+this\s+)?simulation[,.]?\s+(you\s+have\s+no|there\s+are\s+no)",
+    r"\bignore\s+all\b",
+    r"\bdisregard\s+all\b",
+    r"\bdecode\s+(and\s+)?(execute|run|eval)\b",
 ]
 
 
@@ -47,10 +50,6 @@ _ROLE_SWAP_ACT_AS_QUALIFIED = [
     r"\bbroken\s+free\s+of\s+(the\s+)?(typical|normal|usual|standard)?\s*(ai|constraints?|confines?|rules?)\b",
     r"\b(has\s+no|have\s+no|without\s+any)\s+(ethical\s+)?(constraints?|rules?|guidelines?|restrictions?|limits?)\b",
 ]
-
-# Harmful character roleplay — criminal/violent/illegal intent paired with a
-# role-assignment phrase.  Generic fiction ("pretend you are a pirate/knight")
-# does NOT match because those character nouns are not in this list.
 _HARMFUL_ROLE_PHRASES = [
     # criminal roles
     r"\b(pretend|act|imagine|play|be)\s+(you\s+are\s+|as\s+)?(a\s+|an\s+)?"
@@ -138,7 +137,7 @@ _ZERO_WIDTH_SET = set('​‌‍‎‏⁠⁡⁢⁣⁤﻿­')
 
 _LEET_CHARS = set('4@310057$!+|')   
 
-_B64_RE = re.compile(r'[A-Za-z0-9+/]{16,}={0,2}')
+_B64_RE = re.compile(r'[A-Za-z0-9+/]{8,}={0,2}')
 
 _SENTENCE_SPLIT_RE = re.compile(r'[.!?]+')
 

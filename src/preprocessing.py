@@ -51,7 +51,7 @@ _LEET_RE = re.compile(r'[4@31057$!+|]')
 
 
 def _try_base64_decode(text: str) -> str:
-    b64_pattern = re.compile(r'[A-Za-z0-9+/]{16,}={0,2}')
+    b64_pattern = re.compile(r'[A-Za-z0-9+/]{8,}={0,2}')
 
     def try_replace(m: re.Match) -> str:
         blob = m.group(0)
