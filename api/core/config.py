@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     model_version: str = "v0.1.0"
     model_dir: str = "models/"
     api_key: str = ""
+    api_key_manager_url: str = ""
+    redis_url: str = ""
     groq_api_key: str = ""
     groq_model: str = "llama3-70b-8192"
     rate_limit_per_minute: int = 60
