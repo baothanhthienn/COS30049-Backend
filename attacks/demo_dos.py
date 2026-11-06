@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import os
 import sys
 
 import httpx
@@ -16,9 +17,10 @@ async def fire(client: httpx.AsyncClient, url: str, idx: int) -> tuple[int, int]
         return idx, -1
 
 
-async def main(url: str, concurrency: int) -> None:
+async def main(url: str, concurrency: int, api_key: str) -> None:
     print(f"Firing {concurrency} simultaneous requests to {url}/api/classify")
-    async with httpx.AsyncClient() as client:
+    headers = {"X-API-Key": api_key} if api_key else {}
+    async with httpx.AsyncClient(headers=headers) as client:
         results = await asyncio.gather(*[fire(client, url, i) for i in range(concurrency)])
 
     statuses: dict[int, int] = {}
@@ -37,5 +39,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", default="http://localhost:8000")
     parser.add_argument("--concurrency", type=int, default=11)
+    parser.add_argument("--api-key", default=os.getenv("API_KEY", ""))
     args = parser.parse_args()
-    asyncio.run(main(args.url, args.concurrency))
+    asyncio.run(main(args.url, args.concurrency, args.api_key))

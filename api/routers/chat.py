@@ -58,6 +58,12 @@ class ChatRequest(BaseModel):
     history: list[HistoryTurn] = Field(default_factory=list, max_length=20)
 
 
+class SpanOut(BaseModel):
+    start: int
+    end: int
+    label: str
+
+
 class ChatResponse(BaseModel):
     id: uuid.UUID
     session_id: uuid.UUID
@@ -65,6 +71,7 @@ class ChatResponse(BaseModel):
     confidence: float
     attack_family: str | None
     family_scores: dict[str, float]
+    spans: list[SpanOut]
     reply: str
     blocked_reason: str | None
 
@@ -158,6 +165,7 @@ async def chat(req: ChatRequest, db: AsyncSession = Depends(get_db)):
         confidence=result["confidence"],
         attack_family=result["attack_family"],
         family_scores=result["family_scores"],
+        spans=[SpanOut(**s) for s in result.get("spans", [])],
         reply=reply,
         blocked_reason=blocked_reason,
     )

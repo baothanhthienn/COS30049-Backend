@@ -1,4 +1,5 @@
 import argparse
+import os
 import sys
 
 import httpx
@@ -6,11 +7,13 @@ import httpx
 SQLI_PAYLOAD = "' OR '1'='1 --"
 
 
-def main(url: str, session_id: str) -> None:
+def main(url: str, session_id: str, api_key: str) -> None:
     print(f"SQLi probe against {url}/api/sessions/{session_id}/history")
     print(f"  payload: {SQLI_PAYLOAD!r}\n")
 
-    with httpx.Client(timeout=15) as client:
+    headers = {"X-API-Key": api_key} if api_key else {}
+
+    with httpx.Client(timeout=15, headers=headers) as client:
         base = client.get(f"{url}/api/sessions/{session_id}/history", params={"limit": 1})
         if base.status_code == 404:
             print("Session not found — create a few classifications first.")
@@ -20,7 +23,7 @@ def main(url: str, session_id: str) -> None:
             sys.exit(1)
         total_without_filter = base.json()["total"]
 
-        # Attack: inject payload via q=
+        # Attack: inject payload via q= search parameter
         attack = client.get(
             f"{url}/api/sessions/{session_id}/history",
             params={"limit": 1, "q": SQLI_PAYLOAD},
@@ -51,5 +54,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", default="http://localhost:8000")
     parser.add_argument("--session-id", required=True)
+    parser.add_argument("--api-key", default=os.getenv("API_KEY", ""))
     args = parser.parse_args()
-    main(args.url, args.session_id)
+    main(args.url, args.session_id, args.api_key)
