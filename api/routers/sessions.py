@@ -253,7 +253,7 @@ async def history(
     session_id: uuid.UUID,
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
-    q: str | None = None,
+    q: str | None = Query(default=None, max_length=200),
     db: AsyncSession = Depends(get_db),
 ):
     base_filter = Classification.session_id == session_id

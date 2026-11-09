@@ -303,8 +303,8 @@ def extract_features(processed: ProcessedText) -> FeatureVector:
     )
 
 
-def extract_features_from_text(text: str) -> tuple[FeatureVector, list[Span]]:
-    processed = preprocess(text)
+def extract_features_from_text(text: str, normalise: bool = True) -> tuple[FeatureVector, list[Span]]:
+    processed = preprocess(text, normalise=normalise)
     features  = extract_features(processed)
     spans     = find_spans(processed.original_text, processed.decoded_text)
     return features, spans

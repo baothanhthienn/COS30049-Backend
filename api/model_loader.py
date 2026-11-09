@@ -124,11 +124,12 @@ def _apply_keyword_hard_boost(prob: float, features: FeatureVector, decoded_text
 def predict(text: str) -> dict:
     ensure_loaded()
 
-    features, spans = extract_features_from_text(text)
+    normalise = _get_normalise_flag()
+    features, spans = extract_features_from_text(text, normalise=normalise)
     X = np.array([features.to_list()], dtype=np.float32)
 
     prob_injection = float(_best_model.predict_proba(X)[0, 1])
-    decoded = preprocess(text, normalise=_get_normalise_flag()).decoded_text
+    decoded = preprocess(text, normalise=normalise).decoded_text
     prob_injection, boosted = _apply_narrative_frame_boost(prob_injection, features)
     if not boosted:
         prob_injection, boosted = _apply_keyword_hard_boost(prob_injection, features, decoded)
