@@ -1,37 +1,28 @@
-graph TD
-    Browser["🌐 Browser / React\nVercel · cos-30049-frontend.vercel.app"]
+graph LR
+    Browser["Browser\nReact / Vercel"]
 
-    subgraph Railway["☁️ Railway Cloud"]
-        subgraph Middleware["ASGI Middleware Stack"]
-            BodyCap["📦 Body Size Cap\n1 MB limit"]
-            CORS["🔒 CORS Allowlist\nexact origins only"]
-            RateLimit["⏱️ Rate Limiter\n60 req/min · Redis/in-memory"]
-            Semaphore["🚦 Semaphore\n10 concurrent slots"]
-        end
+    BodyCap["Body cap\n1 MB"]
+    CORS["CORS\nallowlist"]
+    Rate["Rate limit\n60 / min"]
+    Sem["Semaphore\n10 slots"]
 
-        subgraph Routers["FastAPI Routers"]
-            Classify["POST /api/classify"]
-            Chat["POST /api/chat"]
-            Sessions["GET /api/sessions/{id}/history\nGET /api/sessions/{id}/trend\nDELETE /api/sessions/{id}"]
-            Health["GET /api/health"]
-        end
+    Classify["POST /api/classify"]
+    Chat["POST /api/chat"]
+    Sessions["GET /api/sessions"]
+    Health["GET /api/health"]
 
-        subgraph ML["ML Pipeline"]
-            StageA["Stage A · RF Classifier\n21 features · ROC-AUC 0.98\nbinary: ALLOW / BLOCK"]
-            StageB["Stage B · K-Means Clustering\n6 attack families\n+ span extraction"]
-        end
+    StageA["RF classifier\n21 features\nALLOW / BLOCK"]
+    StageB["K-Means\n6 families\n+ spans"]
 
-        Postgres[("🐘 PostgreSQL\nRailway managed")]
-        Redis[("⚡ Redis\nRailway · optional")]
-    end
+    PG[("PostgreSQL")]
+    Redis[("Redis\nopt.")]
 
-    Browser -->|"HTTPS + X-API-Key"| BodyCap
-    BodyCap --> CORS
-    CORS --> RateLimit
-    RateLimit -->|"rate check"| Redis
-    RateLimit --> Semaphore
-    Semaphore --> Routers
+    Browser -->|"HTTPS\nX-API-Key"| BodyCap
+    BodyCap --> CORS --> Rate --> Sem
+    Rate -.->|"rate check"| Redis
+    Sem --> Classify & Chat & Sessions & Health
     Classify --> StageA
     Chat --> StageA
     StageA --> StageB
-    Routers -->|"store classifications"| Postgres
+    Classify & Chat -->|"store"| PG
+    Sessions -->|"read/write"| PG
