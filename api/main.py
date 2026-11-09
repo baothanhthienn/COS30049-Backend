@@ -175,7 +175,8 @@ _fallback_buckets: dict[str, list[float]] = {}
 
 @app.middleware("http")
 async def rate_limit(request: Request, call_next):
-    if request.method == "POST" and request.url.path in ("/api/classify", "/api/chat"):
+    if (request.method == "POST" and request.url.path in ("/api/classify", "/api/chat")) or \
+       (request.method == "GET" and request.url.path == "/api/health/db"):
         api_key_val = request.headers.get("x-api-key") or request.headers.get("X-API-Key")
         bucket_key = f"rl:{api_key_val if api_key_val else (request.client.host if request.client else 'unknown')}"
 
@@ -206,10 +207,7 @@ async def rate_limit(request: Request, call_next):
                     content={"error": {"code": "RATE_LIMITED", "message": "Too many requests. Retry after 60 seconds.", "reference_id": ""}},
                 )
             window.append(now)
-            if window:
-                _fallback_buckets[bucket_key] = window
-            else:
-                _fallback_buckets.pop(bucket_key, None)
+            _fallback_buckets[bucket_key] = window
 
     return await call_next(request)
 
