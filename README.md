@@ -6,8 +6,7 @@ classifier (21 hand engineered features, ROC-AUC 0.98) renders an **ALLOW / BLOC
 verdict, then a K-Means clustering stage names the attack family and returns the
 exact character spans of the trigger phrases. On the other hand, if the prompt has no trigged phase, it gives **ALLOW** sign , the backend uses a chat bot to respond to the input prompt.  
 
-- **Group:** Session 04 · Group 6
-- **Students:** Nguyen Gia Bao Pham · Huu Cuong Nguyen · Ethan Nguyen
+- **Author By:** Nguyen Gia Bao Pham | Fullstack developer
 - **Backend:** <https://cos30049-backend-production.up.railway.app>
 - **Frontend:** <https://cos-30049-frontend.vercel.app>
 - **Stack:** Python 3.13, scikit learn, FastAPI, PostgreSQL, Redis, Groq LLM
