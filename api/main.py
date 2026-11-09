@@ -106,6 +106,7 @@ app = FastAPI(
     version=settings.model_version,
     description="ML-powered prompt injection detection API.",
     lifespan=lifespan,
+    swagger_ui_parameters={"tryItOutEnabled": True},
 )
 
 if settings.is_hosted:
@@ -138,6 +139,9 @@ async def log_requests(request: Request, call_next):
     return response
 
 
+_DOCS_PATHS = {"/docs", "/redoc", "/openapi.json"}
+
+
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
     response = await call_next(request)
@@ -148,7 +152,8 @@ async def security_headers(request: Request, call_next):
     response.headers["X-XSS-Protection"] = "0"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
-    response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
+    if request.url.path not in _DOCS_PATHS:
+        response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
     if settings.is_hosted:
         response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
     return response
@@ -201,7 +206,10 @@ async def rate_limit(request: Request, call_next):
                     content={"error": {"code": "RATE_LIMITED", "message": "Too many requests. Retry after 60 seconds.", "reference_id": ""}},
                 )
             window.append(now)
-            _fallback_buckets[bucket_key] = window
+            if window:
+                _fallback_buckets[bucket_key] = window
+            else:
+                _fallback_buckets.pop(bucket_key, None)
 
     return await call_next(request)
 
